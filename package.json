@@ -1,0 +1,25 @@
+{
+  "name": "gramene-bins-client",
+  "version": "1.0.0",
+  "description": "Provide API for working with gene distribution bins provided by data.gramene.org/genes",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/jasmine-node/lib/jasmine-node/cli.js spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:warelab/gramene-bins-client.git"
+  },
+  "author": "ajo2995, mycrobe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/warelab/gramene-bins-client/issues"
+  },
+  "homepage": "https://github.com/warelab/gramene-bins-client",
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
+  },
+  "dependencies": {
+    "is-number": "^1.1.2"
+  }
+}
