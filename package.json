@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:warelab/github-bins-client.git"
+    "url": "git@github.com:warelab/gramene-bins-client.git"
   },
   "author": "ajo2995, mycrobe",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/warelab/github-bins-client/issues"
+    "url": "https://github.com/warelab/gramene-bins-client/issues"
   },
-  "homepage": "https://github.com/warelab/github-bins-client",
+  "homepage": "https://github.com/warelab/gramene-bins-client",
   "devDependencies": {
     "jasmine-node": "^1.14.5"
   },
