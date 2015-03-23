@@ -242,4 +242,4 @@ module.exports = function(data) {
       return 'error, '+binType+' is not a valid binType';
     }
   };
-}
+};
