@@ -24,8 +24,8 @@ describe('Bins', function () {
 
   beforeEach(function () {
     bins = binsGenerator(genomes.response);
-    mapper_2Mb = bins.binMapper('uniform', 2000000);
-    mapper_200 = bins.binMapper('fixed', 200);
+    mapper_2Mb = bins.uniformBinMapper(2000000);
+    mapper_200 = bins.fixedBinMapper(200);
   });
 
   it('pos2bin should work with uniform', function () {
@@ -129,7 +129,7 @@ describe('Bins', function () {
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
 
     // when
     var bin1start = customMapper.pos2bin(3702, "1", 123);
@@ -146,14 +146,14 @@ describe('Bins', function () {
     expect(bin1end3).toEqual(0);
   });
 
-  it('should return -1 with illegal bin positions', function() {
+  it('should return -1 with illegal bin positions', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
 
     // when
     var nobin1 = customMapper.pos2bin(3702, "1", 433);
@@ -172,14 +172,14 @@ describe('Bins', function () {
     expect(nobin6).toEqual(-1);
   });
 
-  it('should return the variable bin by index', function() {
+  it('should return the variable bin by index', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
     var idx = 0;
 
     // when
@@ -189,24 +189,24 @@ describe('Bins', function () {
     expect(bin).toEqual(myBins[idx]);
   });
 
-  it('should error out when asking for unreasonable bins', function() {
+  it('should error out when asking for unreasonable bins', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
     var illegalIdx = 5;
 
     // when
-    var bin = function(){customMapper.bin2pos(illegalIdx);};
+    var bin = function () {customMapper.bin2pos(illegalIdx);};
 
     // then
     expect(bin).toThrow();
   });
 
-  it('should disallow overlapping custom bins', function() {
+  it('should disallow overlapping custom bins', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 1, end: 432},
@@ -214,7 +214,7 @@ describe('Bins', function () {
       {taxon_id: 3702, region: "2", start: 2, end: 444}
     ];
 
-    var shouldFail = function() {bins.binMapper('variable', myBins);};
+    var shouldFail = function () {bins.variableBinMapper(myBins);};
 
     expect(shouldFail).toThrow();
   });

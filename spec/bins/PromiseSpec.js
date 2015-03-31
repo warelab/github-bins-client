@@ -29,14 +29,18 @@ describe('LatestGenome', function() {
     function checkTheThingReturnedIsTheRightShape(binGenerator) {
       // then
       expect(binGenerator).toBeDefined();
-      expect(binGenerator.binMapper).toBeDefined();
-      expect(typeof binGenerator.binMapper).toEqual('function');
+      expect(binGenerator.fixedBinMapper).toBeDefined();
+      expect(binGenerator.uniformBinMapper).toBeDefined();
+      expect(binGenerator.variableBinMapper).toBeDefined();
+      expect(typeof binGenerator.fixedBinMapper).toEqual('function');
+      expect(typeof binGenerator.uniformBinMapper).toEqual('function');
+      expect(typeof binGenerator.variableBinMapper).toEqual('function');
 
       return binGenerator;
     }
 
     function doesReturnedThingAppearToWork(binGenerator) {
-      var bins = binGenerator.binMapper('fixed', 200);
+      var bins = binGenerator.fixedBinMapper(200);
       iWasCalled = true;
       expect(bins).toBeDefined();
       expect(bins.bin2pos).toBeDefined();

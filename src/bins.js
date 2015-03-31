@@ -23,20 +23,6 @@ var isNumber = require('is-number');
 var _ = require('lodash');
 
 module.exports = function(RAW_GENOME_DATA) {
-  //var mapsArray = [];
-  // TODO create this datastructure for each call to xxxBins()
-  // because we should decorate it with details about the bins
-  // rather than leave it static.
-
-  function uniformBins(binSize) {
-    return bins(function(){ return binSize; });
-  }
-
-  function fixedBins(binsPerGenome) {
-    return bins(function(map) {
-      return Math.floor(map.assembledGenomeSize/binsPerGenome);
-    });
-  }
 
   function refactorMapRegions(regions) {
     var indices = _.range(regions.names.length);
@@ -208,21 +194,22 @@ module.exports = function(RAW_GENOME_DATA) {
   }
 
   return {
-    binMapper: function(binType,arg) {
-      if (binType === 'uniform') {
-        return uniformBins(arg);
-      }
-      if (binType === 'fixed') {
-        return fixedBins(arg);
-      }
-      if (binType === 'variable') {
-        // assume we've been given array of valid non-overlapping intervals as objects with keys
-        // taxon_id, region, start, end
-        // arg checking might be a good idea
-        return variableBins(arg);
-      }
-      return 'error, '+binType+' is not a valid binType';
+    uniformBinMapper: function(binWidth) {
+      return bins(function getGlobalBinWidth() {
+        return binWidth;
+      })
+    },
+    fixedBinMapper: function(binsPerGenome) {
+      return bins(function determineBinWidthForGenome(genome) {
+        return Math.floor(genome.assembledGenomeSize / binsPerGenome);
+      })
+    },
+
+    // assume we've been given array of valid non-overlapping intervals as objects with keys
+    // taxon_id, region, start, end
+    // arg checking might be a good idea
+    variableBinMapper: function(binsArray) {
+      return variableBins(binsArray)
     }
   };
 };
-
