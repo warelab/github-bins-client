@@ -14,10 +14,10 @@ describe('Bins', function () {
   var chocolate_start = 1;
   var chocolate_end = 2000000;
   var chocolate_bin = 2;
-  var chocolate_unanchored_bin = 207;
+  var chocolate_unanchored_bin = 201;
 
   var chocolate_genome_length = 330456197;
-  var chocolate_end_fixed200 = Math.floor(chocolate_genome_length / 200);
+  var chocolate_end_fixed200 = 1697356;//Math.floor(chocolate_genome_length / 200);
 
   var arabidopsis_thaliana_taxon_id = 3702;
 
@@ -217,5 +217,18 @@ describe('Bins', function () {
     var shouldFail = function () {bins.variableBinMapper(myBins);};
 
     expect(shouldFail).toThrow();
+  });
+  
+  it('should create the requested number of fixed bins', function () {
+    var expectedNumberOfBins = 0;
+    genomes.response.forEach(function(genome) {
+      if (genome.length > 0) {
+        expectedNumberOfBins += 200;
+      }
+      else {
+        expectedNumberOfBins++;
+      }
+    });
+    expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
   });
 });
