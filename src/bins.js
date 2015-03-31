@@ -22,113 +22,66 @@
 var isNumber = require('is-number');
 var _ = require('lodash');
 
-function refactorMapRegions(regions) {
-  var indices = _.range(regions.names.length);
-  var objArr = _.zip(regions.names, regions.lengths, indices).map(function(region) {
-    return {
-      name: region[0],
-      size: region[1],
-      idx: region[2]
-    };
-  });
-  return _.indexBy(objArr, 'name');
-}
-
-module.exports = function(data) {
+module.exports = function(RAW_GENOME_DATA) {
   //var mapsArray = [];
   // TODO create this datastructure for each call to xxxBins()
   // because we should decorate it with details about the bins
   // rather than leave it static.
-  var rawGenomeData = data;
-
-  function genomesMap() {
-    return _(data).map(function(d) {
-      var genome = {
-        taxon_id: d.taxon_id,
-        size: d.length, // does not include UNANCHORED region
-        regions: refactorMapRegions(d.regions)
-      };
-      return genome;
-    }).indexBy('taxon_id').value();
-  }
 
   function uniformBins(binSize) {
-    var binPos = [];
-    var mapsObj = genomesMap();
-    //var posBin = {};
-    var bin_idx = 0;
-    for (var m in mapsObj) {
-      var map = mapsObj[m];
-      var tax = map.taxon_id;
-      //posBin[tax] = {};
-      _.forEach(map.regions, function(region, rname) {
-        var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
-        region.startBin = binPos.length;
-        region.bins = [];
-        for(var j=0; j < nbins; j++) {
-          var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
-          var theBin = {taxon_id:tax,assembly:map,region:region,start:j*binSize+1,end:end};
-          binPos.push(theBin);
-          region.bins.push(theBin);
-        }
-      });
-    }
-    return {
-      // _binPos: binPos, // uncomment if you want to bipass sanity checks in bin2pos()
-      // _posBin: posBin,
-      bin2pos: function(bin) {
-        if (bin < 0 || bin >= binPos.length) {
-          throw 'bin ' + bin + ' out of range';
-        }
-        return binPos[bin];
-      },
-      pos2bin: function(tax, region, position) {
-        if (!mapsObj.hasOwnProperty(tax)) {
-          throw tax + ' not a known taxonomy id';
-        }
-        var posBin = mapsObj[tax].regions;
-        if (region === 'UNANCHORED' || !posBin.hasOwnProperty(region)) {
-          // assume UNANCHORED
-          if (!posBin.hasOwnProperty('UNANCHORED')) {
-            throw region + ' not a known seq region';
-          }
-          return posBin[tax]['UNANCHORED'].startBin;
-        }
-        if (position < 1 || position >= posBin[region].size) {
-          throw 'position ' + position + ' out of range';
-        }
-        return posBin[region].startBin + Math.floor((position-1)/binSize);
-      },
-      nbins: binPos.length
-    };
+    return bins(function(){ return binSize; });
   }
 
   function fixedBins(binsPerGenome) {
+    return bins(function(map) {
+      return Math.floor(map.assembledGenomeSize/binsPerGenome);
+    });
+  }
+
+  function refactorMapRegions(regions) {
+    var indices = _.range(regions.names.length);
+    var objArr = _.zip(regions.names, regions.lengths, indices).map(function(region) {
+      return {
+        name: region[0],
+        size: region[1],
+        idx: region[2]
+      };
+    });
+    return _.indexBy(objArr, 'name');
+  }
+
+  // generate new genome data structure from (immutable) raw data
+  function genomesMap() {
+    return _(RAW_GENOME_DATA).map(function(d) {
+      return {
+        taxon_id: d.taxon_id,
+        assembledGenomeSize: d.length, // does not include UNANCHORED region
+        regions: refactorMapRegions(d.regions)
+      };
+    }).indexBy('taxon_id').value();
+  }
+
+  function bins(getBinSizeForGenome) {
     var binPos = [];
     var mapsObj = genomesMap();
-    //var posBin = {};
-    var bin_idx = 0;
     for (var m in mapsObj) {
       var map = mapsObj[m];
       var tax = map.taxon_id;
-      //posBin[tax] = {};
-      var nRegions = _.size(map.regions);
-      var binSize = Math.floor(map.size/binsPerGenome);
+      var binSize = getBinSizeForGenome(map);
       _.forEach(map.regions, function(region, rname) {
         var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
         region.startBin = binPos.length;
         region.bins = [];
         for(var j=0; j < nbins; j++) {
+          var idx = region.startBin + j;
+          var start = j*binSize+1;
           var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
-          var theBin = {taxon_id:tax,assembly:map,region:region,start:j*binSize+1,end:end};
-          binPos.push(theBin);
-          region.bins.push(theBin);
+          binPos.push({taxon_id:tax, assembly:map, region:region, start:start, end:end});
+          region.bins.push({start:start, end:end, idx:idx});
         }
       });
     }
     return {
-      // _binPos: binPos, // uncomment if you want to bipass sanity checks in bin2pos()
-      // _posBin: posBin,
       bin2pos: function(bin) {
         if (bin < 0 || bin >= binPos.length) {
           throw 'bin ' + bin + ' out of range';
@@ -139,8 +92,9 @@ module.exports = function(data) {
         if (!mapsObj.hasOwnProperty(tax)) {
           throw tax + ' not a known taxonomy id';
         }
-        var binSize = Math.floor(mapsObj[tax].size/binsPerGenome);
-        var posBin = mapsObj[tax].regions;
+        var map = mapsObj[tax];
+        var binSize = getBinSizeForGenome(map);
+        var posBin = map.regions;
         if (region === 'UNANCHORED' || !posBin.hasOwnProperty(region)) {
           // assume UNANCHORED
           if (!posBin.hasOwnProperty('UNANCHORED')) {
@@ -148,7 +102,7 @@ module.exports = function(data) {
           }
           return posBin['UNANCHORED'].startBin;
         }
-        if (position < 1 || position > posBin[region].size) {
+        if (position < 1 || position >= posBin[region].size) {
           throw 'position ' + position + ' out of range';
         }
         return posBin[region].startBin + Math.floor((position-1)/binSize);
