@@ -10,7 +10,7 @@ describe('Bins', function () {
 
   // example data for mapper_2Mb
   var chocolate_taxon_id = 3641;
-  var chocolate_region = "1";
+  var chocolate_region_name = "1";
   var chocolate_start = 1;
   var chocolate_end = 2000000;
   var chocolate_bin = 2;
@@ -24,14 +24,14 @@ describe('Bins', function () {
 
   beforeEach(function () {
     bins = binsGenerator(genomes.response);
-    mapper_2Mb = bins.binMapper('uniform', 2000000);
-    mapper_200 = bins.binMapper('fixed', 200);
+    mapper_2Mb = bins.uniformBinMapper(2000000);
+    mapper_200 = bins.fixedBinMapper(200);
   });
 
   it('pos2bin should work with uniform', function () {
     // when
-    var startBin = mapper_2Mb.pos2bin(chocolate_taxon_id, chocolate_region, chocolate_start);
-    var endBin = mapper_2Mb.pos2bin(chocolate_taxon_id, chocolate_region, chocolate_end);
+    var startBin = mapper_2Mb.pos2bin(chocolate_taxon_id, chocolate_region_name, chocolate_start);
+    var endBin = mapper_2Mb.pos2bin(chocolate_taxon_id, chocolate_region_name, chocolate_end);
 
     // then
     expect(startBin).toEqual(chocolate_bin);
@@ -43,18 +43,18 @@ describe('Bins', function () {
     var result = mapper_2Mb.bin2pos(chocolate_bin);
 
     // then
-    expect(Object.keys(result).length).toEqual(4);
-    expect(Object.keys(result)).toEqual(['taxon_id', 'region', 'start', 'end']);
+    expect(Object.keys(result).length).toEqual(5);
+    expect(Object.keys(result)).toEqual(['taxon_id', 'assembly', 'region', 'start', 'end']);
     expect(result.taxon_id).toEqual(chocolate_taxon_id);
-    expect(result.region).toEqual(chocolate_region);
+    expect(result.region.name).toEqual(chocolate_region_name);
     expect(result.start).toEqual(chocolate_start);
     expect(result.end).toEqual(chocolate_end);
   });
 
   it('pos2bin should work with fixed', function () {
     // when
-    var startBin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region, chocolate_start);
-    var endBin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region, chocolate_end_fixed200);
+    var startBin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region_name, chocolate_start);
+    var endBin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region_name, chocolate_end_fixed200);
 
     // then
     expect(startBin).toEqual(chocolate_bin);
@@ -66,10 +66,10 @@ describe('Bins', function () {
     var result = mapper_200.bin2pos(chocolate_bin);
 
     // then
-    expect(Object.keys(result).length).toEqual(4);
-    expect(Object.keys(result)).toEqual(['taxon_id', 'region', 'start', 'end']);
+    expect(Object.keys(result).length).toEqual(5);
+    expect(Object.keys(result)).toEqual(['taxon_id', 'assembly', 'region', 'start', 'end']);
     expect(result.taxon_id).toEqual(chocolate_taxon_id);
-    expect(result.region).toEqual(chocolate_region);
+    expect(result.region.name).toEqual(chocolate_region_name);
     expect(result.start).toEqual(chocolate_start);
     expect(result.end).toEqual(chocolate_end_fixed200);
   });
@@ -113,7 +113,9 @@ describe('Bins', function () {
   it('pos2bin should throw when an illegal position is requested', function () {
     // when
     var illegalRegion1 = function () {mapper_200.pos2bin(arabidopsis_thaliana_taxon_id, "1", -1)};
-    var illegalRegion2 = function () {mapper_200.pos2bin(arabidopsis_thaliana_taxon_id, "1", 1e11)};
+    var illegalRegion2 = function () {
+      mapper_200.pos2bin(arabidopsis_thaliana_taxon_id, "1", 1e11)
+    };
 
     // then
     expect(illegalRegion1).toThrow();
@@ -127,7 +129,7 @@ describe('Bins', function () {
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
 
     // when
     var bin1start = customMapper.pos2bin(3702, "1", 123);
@@ -144,14 +146,14 @@ describe('Bins', function () {
     expect(bin1end3).toEqual(0);
   });
 
-  it('should return -1 with illegal bin postions', function() {
+  it('should return -1 with illegal bin positions', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
 
     // when
     var nobin1 = customMapper.pos2bin(3702, "1", 433);
@@ -170,14 +172,14 @@ describe('Bins', function () {
     expect(nobin6).toEqual(-1);
   });
 
-  it('should return the variable bin by index', function() {
+  it('should return the variable bin by index', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
     var idx = 0;
 
     // when
@@ -187,24 +189,24 @@ describe('Bins', function () {
     expect(bin).toEqual(myBins[idx]);
   });
 
-  it('should error out when asking for unreasonable bins', function() {
+  it('should error out when asking for unreasonable bins', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 123, end: 432},
       {taxon_id: 3702, region: "1", start: 555, end: 888},
       {taxon_id: 3702, region: "2", start: 111, end: 444}
     ];
-    var customMapper = bins.binMapper('variable', myBins);
+    var customMapper = bins.variableBinMapper(myBins);
     var illegalIdx = 5;
 
     // when
-    var bin = function(){customMapper.bin2pos(illegalIdx);};
+    var bin = function () {customMapper.bin2pos(illegalIdx);};
 
     // then
     expect(bin).toThrow();
   });
 
-  it('should disallow overlapping custom bins', function() {
+  it('should disallow overlapping custom bins', function () {
     // given
     var myBins = [
       {taxon_id: 3702, region: "1", start: 1, end: 432},
@@ -212,7 +214,7 @@ describe('Bins', function () {
       {taxon_id: 3702, region: "2", start: 2, end: 444}
     ];
 
-    var shouldFail = function() {bins.binMapper('variable', myBins);};
+    var shouldFail = function () {bins.variableBinMapper(myBins);};
 
     expect(shouldFail).toThrow();
   });
