@@ -26,16 +26,16 @@ describe('LatestGenome', function() {
     var result = binPromiser.get();
     var iWasCalled = false;
 
-    function testResult(binGenerator) {
+    function checkTheThingReturnedIsTheRightShape(binGenerator) {
       // then
-      expect(typeof binGenerator).toEqual('function');
+      expect(binGenerator).toBeDefined();
       expect(binGenerator.binMapper).toBeDefined();
       expect(typeof binGenerator.binMapper).toEqual('function');
 
       return binGenerator;
     }
 
-    function doesItAppearToWork(binGenerator) {
+    function doesReturnedThingAppearToWork(binGenerator) {
       var bins = binGenerator.binMapper('fixed', 200);
       iWasCalled = true;
       expect(bins).toBeDefined();
@@ -46,17 +46,18 @@ describe('LatestGenome', function() {
       expect(bins.bin2pos(0)).toBeDefined();
     }
 
-    function testError(error) {
+    function thereShouldBeNoErrors(error) {
       expect(error).toBeUndefined();
     }
 
     function ensureTestResultCalled() {
-      expect(iWasCalled).toEqual(true);
+      return iWasCalled;
     }
 
-    result.then(testResult)
-      .then(doesItAppearToWork)
-      .then(ensureTestResultCalled)
-      .catch(testError);
+    result.then(checkTheThingReturnedIsTheRightShape)
+      .then(doesReturnedThingAppearToWork)
+      .catch(thereShouldBeNoErrors);
+
+    waitsFor(ensureTestResultCalled, 'the bin generator to be created', 5000);
   });
 });
