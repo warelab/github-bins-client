@@ -48,37 +48,39 @@ module.exports = function(RAW_GENOME_DATA) {
   }
 
   function bins(getBinSizeForGenome) {
-    var binPos = [];
-    var mapsObj = genomesMap();
-    for (var m in mapsObj) {
-      var map = mapsObj[m];
+    var bins = [];
+    var genomeMaps = genomesMap();
+
+    _.forEach(genomeMaps, function(map) {
       var tax = map.taxon_id;
       var binSize = getBinSizeForGenome(map);
       _.forEach(map.regions, function(region, rname) {
         var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
-        region.startBin = binPos.length;
+        region.startBin = bins.length;
         region.bins = [];
         for(var j=0; j < nbins; j++) {
           var idx = region.startBin + j;
           var start = j*binSize+1;
           var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
-          binPos.push({taxon_id:tax, assembly:map, region:region, start:start, end:end});
+          bins.push({taxon_id:tax, assembly:map, region:region, start:start, end:end});
           region.bins.push({start:start, end:end, idx:idx});
         }
       });
-    }
+    });
+
     return {
+      binnedGenomes: function() { return genomeMaps; },
       bin2pos: function(bin) {
-        if (bin < 0 || bin >= binPos.length) {
+        if (bin < 0 || bin >= bins.length) {
           throw 'bin ' + bin + ' out of range';
         }
-        return binPos[bin];
+        return bins[bin];
       },
       pos2bin: function(tax, region, position) {
-        if (!mapsObj.hasOwnProperty(tax)) {
+        if (!genomeMaps.hasOwnProperty(tax)) {
           throw tax + ' not a known taxonomy id';
         }
-        var map = mapsObj[tax];
+        var map = genomeMaps[tax];
         var binSize = getBinSizeForGenome(map);
         var posBin = map.regions;
         if (region === 'UNANCHORED' || !posBin.hasOwnProperty(region)) {
@@ -93,7 +95,7 @@ module.exports = function(RAW_GENOME_DATA) {
         }
         return posBin[region].startBin + Math.floor((position-1)/binSize);
       },
-      nbins: binPos.length
+      nbins: bins.length
     };
   }
 
@@ -204,7 +206,6 @@ module.exports = function(RAW_GENOME_DATA) {
         return Math.floor(genome.assembledGenomeSize / binsPerGenome);
       })
     },
-
     // assume we've been given array of valid non-overlapping intervals as objects with keys
     // taxon_id, region, start, end
     // arg checking might be a good idea
