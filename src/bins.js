@@ -39,11 +39,22 @@ module.exports = function(RAW_GENOME_DATA) {
   // generate new genome data structure from (immutable) raw data
   function genomesMap() {
     return _(RAW_GENOME_DATA).map(function(d) {
-      return {
+      var regions = refactorMapRegions(d.regions);
+      var result = {
         taxon_id: d.taxon_id,
         assembledGenomeSize: d.length, // does not include UNANCHORED region
-        regions: refactorMapRegions(d.regions)
+        fullGenomeSize: _.reduce(regions, function(total, region) { return total + region.size}, 0),
+        regions: regions
       };
+      if(result.fullGenomeSize < result.assembledGenomeSize) {
+        throw new Error(
+          'inconsistencies in genome sizes! The assembled length of ' +
+          d.taxon_id + '\'s genome (' + result.assembledGenomeSize +
+          ') is longer than the sum of all regions of that genome (' +
+          result.fullGenomeSize +')'
+        );
+      }
+      return result;
     }).indexBy('taxon_id').value();
   }
 
