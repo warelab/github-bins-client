@@ -222,16 +222,57 @@ describe('Bins', function () {
   });
   
   it('should create the requested number of fixed bins', function () {
-    var expectedNumberOfBins = 0;
-    genomes.response.forEach(function(genome) {
-      if (genome.length > 0) {
-        expectedNumberOfBins += 200;
-      }
-      else {
-        expectedNumberOfBins++;
-      }
-    });
+    var expectedNumberOfBins = genomes.response.reduce(function(acc, genome) {
+      return acc + (genome.length > 0 ? 200 : 1);
+    }, 0);
     expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
+  });
+
+  it('fixedBinMapper should correctly determine bin width for test genomes', function() {
+    // given
+    var binSizeFunction = mapper_200._getBinSizeForGenome;
+    var genomes = {
+      tooSmall: {
+        assembledGenomeSize: 2000,
+        regions: { // calculated bin size is 10
+          a: { size: 1000 },
+          b: { size: 1000 }
+        }
+      },
+      A: {
+        assembledGenomeSize: 200000,
+        regions: { // calculated bin size is 1007; shouldn't it be 1005?
+          a: { size: 1000 },
+          b: { size: 1100 },
+          c: { size: 197900 }
+        }
+      },
+      B: {
+        assembledGenomeSize: 200000,
+        regions: { // cacluated bin size is 1010
+          a: { size: 100 },
+          b: { size: 900 },
+          c: { size: 198900 },
+          UNANCHORED: {}
+        }
+      },
+      C: {
+        assembledGenomeSize: 200000,
+        regions: { // cacluated bin size is 1010; shouldn't it be 1006?
+          a: { size: 0 },
+          b: { size: 200000 },
+          c: { size: 0 },
+          UNANCHORED: {}
+        }
+      }
+    };
+
+    expect(function() { binSizeFunction(genomes.tooSmall) })
+      .toThrow('assembled genome sizes between 1 and 100000 are not supported');
+
+    expect(binSizeFunction(genomes.A)).toEqual(1007); // TODO this should be 1005?
+    expect(binSizeFunction(genomes.B)).toEqual(1010);
+    expect(binSizeFunction(genomes.C)).toEqual(1010); // TODO this should be 1006?
   });
 
   it('should decorate genome/assembly data object with bin information', function() {
