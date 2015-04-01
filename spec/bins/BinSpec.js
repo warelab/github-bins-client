@@ -214,8 +214,10 @@ describe('Bins', function () {
       {taxon_id: 3702, region: "2", start: 2, end: 444}
     ];
 
+    // when
     var shouldFail = function () {bins.variableBinMapper(myBins);};
 
+    // then
     expect(shouldFail).toThrow();
   });
   
@@ -231,4 +233,33 @@ describe('Bins', function () {
     });
     expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
   });
+
+  it('should decorate genome/assembly data object with bin information', function() {
+    // given
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    var genome = binnedGenomes[chocolate_taxon_id];
+    var region = genome.regions[chocolate_region_name];
+
+    // then
+    expect(region.startBin).toEqual(chocolate_bin);
+    expect(region.bins.length).toEqual(23);
+  });
+
+  it('should provide consistent information from pos2bin/bin2pos and annotated assembly object', function() {
+    // given
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    var objBin = binnedGenomes[chocolate_taxon_id].regions[chocolate_region_name].bins[0];
+    var bin2pos = mapper_200.bin2pos(objBin.idx);
+    var pos2bin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region_name, 1);
+
+    // then
+    expect(bin2pos.start).toEqual(objBin.start);
+    expect(bin2pos.end).toEqual(objBin.end);
+    expect(bin2pos.region.name).toEqual(chocolate_region_name);
+    expect(pos2bin).toEqual(objBin.idx);
+  })
 });
