@@ -106,7 +106,8 @@ module.exports = function(RAW_GENOME_DATA) {
         }
         return posBin[region].startBin + Math.floor((position-1)/binSize);
       },
-      nbins: bins.length
+      nbins: bins.length,
+      _getBinSizeForGenome: getBinSizeForGenome
     };
   }
 
@@ -215,6 +216,10 @@ module.exports = function(RAW_GENOME_DATA) {
     fixedBinMapper: function(binsPerGenome) {
       return bins(function determineBinWidthForGenome(genome) {
         if (genome.assembledGenomeSize === 0) return 0;
+
+        if (genome.assembledGenomeSize < 100000) {
+          throw new Error('assembled genome sizes between 1 and 100000 are not supported');
+        }
 
         var binSize = Math.floor(genome.assembledGenomeSize / binsPerGenome);
 
