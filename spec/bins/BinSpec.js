@@ -14,10 +14,10 @@ describe('Bins', function () {
   var chocolate_start = 1;
   var chocolate_end = 2000000;
   var chocolate_bin = 2;
-  var chocolate_unanchored_bin = 207;
+  var chocolate_unanchored_bin = 201;
 
   var chocolate_genome_length = 330456197;
-  var chocolate_end_fixed200 = Math.floor(chocolate_genome_length / 200);
+  var chocolate_end_fixed200 = 1697356;//Math.floor(chocolate_genome_length / 200);
 
   var arabidopsis_thaliana_taxon_id = 3702;
 
@@ -220,6 +220,19 @@ describe('Bins', function () {
     // then
     expect(shouldFail).toThrow();
   });
+  
+  it('should create the requested number of fixed bins', function () {
+    var expectedNumberOfBins = 0;
+    genomes.response.forEach(function(genome) {
+      if (genome.length > 0) {
+        expectedNumberOfBins += 200;
+      }
+      else {
+        expectedNumberOfBins++;
+      }
+    });
+    expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
+  });
 
   it('should decorate genome/assembly data object with bin information', function() {
     // given
@@ -231,7 +244,7 @@ describe('Bins', function () {
 
     // then
     expect(region.startBin).toEqual(chocolate_bin);
-    expect(region.bins.length).toEqual(24);
+    expect(region.bins.length).toEqual(23);
   });
 
   it('should provide consistent information from pos2bin/bin2pos and annotated assembly object', function() {

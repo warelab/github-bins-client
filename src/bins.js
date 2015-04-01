@@ -214,7 +214,40 @@ module.exports = function(RAW_GENOME_DATA) {
     },
     fixedBinMapper: function(binsPerGenome) {
       return bins(function determineBinWidthForGenome(genome) {
-        return Math.floor(genome.assembledGenomeSize / binsPerGenome);
+        if (genome.assembledGenomeSize === 0) return 0;
+
+        var binSize = Math.floor(genome.assembledGenomeSize / binsPerGenome);
+
+        function countBins(binSize) {
+          var nbins = 0;
+          for(var region in genome.regions) {
+            if (region === 'UNANCHORED') {
+              nbins++
+            }
+            else {
+              nbins += Math.ceil(genome.regions[region].size / binSize);
+            }
+          }
+          return nbins;
+        }
+
+        var nbins = countBins(binSize);
+        if (nbins > binsPerGenome) {
+          var a = Math.floor(genome.assembledGenomeSize / (binsPerGenome - _.size(genome.regions)));
+          var b = binSize;
+          while (countBins(a) != binsPerGenome) {
+            var m = Math.floor((a+b)/2);
+            var mbins = countBins(m);
+            if (mbins <= binsPerGenome) {
+              a = m;
+            }
+            else if (mbins > binsPerGenome) {
+              b = m;
+            }
+          }
+          binSize = a;
+        }
+        return binSize;
       })
     },
     // assume we've been given array of valid non-overlapping intervals as objects with keys
