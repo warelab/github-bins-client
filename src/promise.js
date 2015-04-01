@@ -11,7 +11,7 @@ module.exports = {
 };
 
 function justTheData(json) {
-  return json.response;
+  return Q(json.response);
 }
 
 function binPromise(data) {
