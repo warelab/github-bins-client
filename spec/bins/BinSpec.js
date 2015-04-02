@@ -23,7 +23,7 @@ describe('Bins', function () {
 
 
   beforeEach(function () {
-    bins = binsGenerator(genomes.response);
+    bins = binsGenerator(genomes.data.response);
     mapper_2Mb = bins.uniformBinMapper(2000000);
     mapper_200 = bins.fixedBinMapper(200);
   });
@@ -222,7 +222,7 @@ describe('Bins', function () {
   });
   
   it('should create the requested number of fixed bins', function () {
-    var expectedNumberOfBins = genomes.response.reduce(function(acc, genome) {
+    var expectedNumberOfBins = genomes.data.response.reduce(function(acc, genome) {
       return acc + (genome.length > 0 ? 200 : 1);
     }, 0);
     expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
