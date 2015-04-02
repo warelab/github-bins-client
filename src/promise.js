@@ -6,7 +6,7 @@ module.exports = {
   get: function () {
     return axios.get('http://data.gramene.org/maps/select?type=genome')
       .then(justTheData)
-      .then(binPromise)
+      .then(binPromise);
   }
 };
 
