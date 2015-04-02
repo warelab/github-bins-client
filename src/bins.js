@@ -46,6 +46,7 @@ module.exports = function(RAW_GENOME_DATA) {
         fullGenomeSize: _.reduce(regions, function(total, region) { return total + region.size}, 0),
         regions: regions
       };
+
       if(result.fullGenomeSize < result.assembledGenomeSize) {
         throw new Error(
           'inconsistencies in genome sizes! The assembled length of ' +
