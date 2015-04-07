@@ -3,10 +3,17 @@ var Q = require('q');
 var bins = require('./bins');
 
 module.exports = {
-  get: function () {
-    return axios.get('http://data.gramene.org/maps/select?type=genome')
+  get: function (local) {
+    var src;
+    if(local) {
+      src = Q(require('../spec/support/genomes'));
+    }
+    else {
+      src = axios.get('http://data.gramene.org/maps/select?type=genome');
+    }
+    return src
       .then(justTheData)
-      .then(binPromise)
+      .then(binPromise);
   }
 };
 

@@ -66,6 +66,8 @@ module.exports = function(RAW_GENOME_DATA) {
     _.forEach(genomeMaps, function(map) {
       var tax = map.taxon_id;
       var binSize = getBinSizeForGenome(map);
+      var genomeBinCount = 0;
+      map.startBin = bins.length;
       _.forEach(map.regions, function(region, rname) {
         var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
         region.startBin = bins.length;
@@ -76,8 +78,10 @@ module.exports = function(RAW_GENOME_DATA) {
           var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
           bins.push({taxon_id:tax, assembly:map, region:region, start:start, end:end});
           region.bins.push({start:start, end:end, idx:idx});
+          ++genomeBinCount;
         }
       });
+      map.nbins = genomeBinCount;
     });
 
     return {
