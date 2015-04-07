@@ -13,6 +13,14 @@ describe('LatestGenome', function() {
     spyOn(axios, 'get').andReturn(expectedResult);
   });
 
+  it('should work with local data file', function() {
+    binPromiser.get(true).then(function(binGenerator) {
+      expect(binGenerator).toBeDefined();
+    }).catch(function(error) {
+      expect(error).toBeUndefined();
+    });
+  });
+
   it('should request data from http://data.gramene.org/maps/select?type=genome', function() {
     // when
     binPromiser.get();

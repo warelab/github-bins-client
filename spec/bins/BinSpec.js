@@ -281,11 +281,14 @@ describe('Bins', function () {
 
     // when
     var genome = binnedGenomes[chocolate_taxon_id];
-    var region = genome.regions[chocolate_region_name];
+    var firstRegion = genome.regions[chocolate_region_name];
 
     // then
-    expect(region.startBin).toEqual(chocolate_bin);
-    expect(region.bins.length).toEqual(23);
+    expect(firstRegion.startBin).toEqual(chocolate_bin);
+    expect(firstRegion.bins.length).toEqual(23);
+
+    expect(genome.startBin).toEqual(firstRegion.startBin);
+    expect(genome.nbins).toEqual(200);
   });
 
   it('should provide consistent information from pos2bin/bin2pos and annotated assembly object', function() {
