@@ -2,6 +2,7 @@ describe('Bins', function () {
   // json response to http://data.gramene.org/maps/select?type=genome
   // converted into a commonJS module by prepending json doc with
   // `module.exports = `
+  var _ = require('lodash');
   var genomes = require('../support/genomes.js');
   var binsGenerator = require('../../src/bins');
   var bins;
@@ -44,9 +45,9 @@ describe('Bins', function () {
 
     // then
     expect(Object.keys(result).length).toEqual(5);
-    expect(Object.keys(result)).toEqual(['taxon_id', 'assembly', 'region', 'start', 'end']);
+    expect(Object.keys(result)).toEqual(['taxon_id', 'region', 'start', 'end', 'idx']);
     expect(result.taxon_id).toEqual(chocolate_taxon_id);
-    expect(result.region.name).toEqual(chocolate_region_name);
+    expect(result.region).toEqual(chocolate_region_name);
     expect(result.start).toEqual(chocolate_start);
     expect(result.end).toEqual(chocolate_end);
   });
@@ -67,9 +68,9 @@ describe('Bins', function () {
 
     // then
     expect(Object.keys(result).length).toEqual(5);
-    expect(Object.keys(result)).toEqual(['taxon_id', 'assembly', 'region', 'start', 'end']);
+    expect(Object.keys(result)).toEqual(['taxon_id', 'region', 'start', 'end', 'idx']);
     expect(result.taxon_id).toEqual(chocolate_taxon_id);
-    expect(result.region.name).toEqual(chocolate_region_name);
+    expect(result.region).toEqual(chocolate_region_name);
     expect(result.start).toEqual(chocolate_start);
     expect(result.end).toEqual(chocolate_end_fixed200);
   });
@@ -220,54 +221,54 @@ describe('Bins', function () {
     // then
     expect(shouldFail).toThrow();
   });
-  
+
   it('should create the requested number of fixed bins', function () {
-    var expectedNumberOfBins = genomes.data.response.reduce(function(acc, genome) {
+    var expectedNumberOfBins = genomes.data.response.reduce(function (acc, genome) {
       return acc + (genome.length > 0 ? 200 : 1);
     }, 0);
     expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
   });
 
-  it('fixedBinMapper should correctly determine bin width for test genomes', function() {
+  it('fixedBinMapper should correctly determine bin width for test genomes', function () {
     // given
     var binSizeFunction = mapper_200._getBinSizeForGenome;
     var genomes = {
       tooSmall: {
         assembledGenomeSize: 2000,
         regions: { // calculated bin size is 10
-          a: { size: 1000 },
-          b: { size: 1000 }
+          a: {size: 1000},
+          b: {size: 1000}
         }
       },
       A: {
         assembledGenomeSize: 200000,
         regions: { // calculated bin size is 1007; shouldn't it be 1005?
-          a: { size: 1000 },
-          b: { size: 1100 },
-          c: { size: 197900 }
+          a: {size: 1000},
+          b: {size: 1100},
+          c: {size: 197900}
         }
       },
       B: {
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010
-          a: { size: 100 },
-          b: { size: 900 },
-          c: { size: 198900 },
+          a: {size: 100},
+          b: {size: 900},
+          c: {size: 198900},
           UNANCHORED: {}
         }
       },
       C: {
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010; shouldn't it be 1006?
-          a: { size: 0 },
-          b: { size: 200000 },
-          c: { size: 0 },
+          a: {size: 0},
+          b: {size: 200000},
+          c: {size: 0},
           UNANCHORED: {}
         }
       }
     };
 
-    expect(function() { binSizeFunction(genomes.tooSmall) })
+    expect(function () { binSizeFunction(genomes.tooSmall) })
       .toThrow('assembled genome sizes between 1 and 100000 are not supported');
 
     expect(binSizeFunction(genomes.A)).toEqual(1007); // TODO this should be 1005?
@@ -275,7 +276,7 @@ describe('Bins', function () {
     expect(binSizeFunction(genomes.C)).toEqual(1010); // TODO this should be 1006?
   });
 
-  it('should decorate genome/assembly data object with bin information', function() {
+  it('should decorate genome/assembly data object with bin information', function () {
     // given
     var binnedGenomes = mapper_200.binnedGenomes();
 
@@ -291,7 +292,7 @@ describe('Bins', function () {
     expect(genome.nbins).toEqual(200);
   });
 
-  it('should provide consistent information from pos2bin/bin2pos and annotated assembly object', function() {
+  it('should provide consistent information from pos2bin/bin2pos and annotated assembly object', function () {
     // given
     var binnedGenomes = mapper_200.binnedGenomes();
 
@@ -303,7 +304,68 @@ describe('Bins', function () {
     // then
     expect(bin2pos.start).toEqual(objBin.start);
     expect(bin2pos.end).toEqual(objBin.end);
-    expect(bin2pos.region.name).toEqual(chocolate_region_name);
+    expect(bin2pos.region).toEqual(chocolate_region_name);
     expect(pos2bin).toEqual(objBin.idx);
-  })
+  });
+
+  it('binnedGenomes.setResults should throw with illegal results param', function () {
+    // given
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    var throwers = [
+      function throw1() { binnedGenomes.setResults(); },
+      function throw2() { binnedGenomes.setResults(-1); },
+      function throw3() { binnedGenomes.setResults('hello'); },
+      function throw4() { binnedGenomes.setResults(new Date()); },
+      function throw5() { binnedGenomes.setResults({}); }
+    ];
+
+    // then
+    throwers.map(function(fn) {
+      expect(fn).toThrow('Please supply valid results parameter');
+    });
+  });
+
+  it('should throw with results from incorrect bin configuration', function () {
+    // given
+    var binnedResults = require('../support/results-fixed_1000_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    function shouldThrow() {
+      binnedGenomes.setResults(binnedResults);
+    }
+
+    // then
+    expect(shouldThrow).toThrow('Results are for fixed_1000_bin bins. Should be fixed_200_bin');
+  });
+
+  it('should map result counts to the appropriate bins', function() {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    var objBin = binnedGenomes[chocolate_taxon_id].regions[chocolate_region_name].bins[0];
+    binnedGenomes.setResults(binnedResults);
+
+    // then
+    expect(objBin.result).toBeDefined();
+    expect(objBin.result.count).toEqual(356);
+
+  });
+
+  it('should throw if the largest bin index is greater than the number of bins', function() {
+    // given
+    var binnedResults = _.cloneDeep(require('../support/results-fixed_200_bin'));
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when we hack the data to have a very large bin
+    binnedResults.data[999999999] = {count: 1};
+    function thrower() { return binnedGenomes.setResults(binnedResults); }
+
+    // then
+    expect(thrower).toThrow('Bin count mismatch!');
+  });
 });

@@ -9,7 +9,7 @@ module.exports = {
       src = Q(require('../spec/support/genomes'));
     }
     else {
-      src = axios.get('http://data.gramene.org/maps/select?type=genome');
+      src = axios.get('http://data.gramene.org/maps/select?type=genome&rows=999999');
     }
     return src
       .then(justTheData)

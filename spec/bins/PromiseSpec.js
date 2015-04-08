@@ -21,12 +21,12 @@ describe('LatestGenome', function() {
     });
   });
 
-  it('should request data from http://data.gramene.org/maps/select?type=genome', function() {
+  it('should request data from http://data.gramene.org/maps/select?type=genome&rows=999999', function() {
     // when
     binPromiser.get();
 
     // then
-    expect(axios.get.mostRecentCall.args[0]).toEqual('http://data.gramene.org/maps/select?type=genome');
+    expect(axios.get.mostRecentCall.args[0]).toEqual('http://data.gramene.org/maps/select?type=genome&rows=999999');
   });
 
   it('should return a bin generator', function() {
