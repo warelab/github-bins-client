@@ -59,7 +59,7 @@ module.exports = function(RAW_GENOME_DATA) {
     }).indexBy('taxon_id').value();
   }
 
-  function bins(getBinSizeForGenome) {
+  function bins(binName, getBinSizeForGenome) {
     var bins = [];
     var genomeMaps = genomesMap();
 
@@ -76,13 +76,55 @@ module.exports = function(RAW_GENOME_DATA) {
           var idx = region.startBin + j;
           var start = j*binSize+1;
           var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
-          bins.push({taxon_id:tax, assembly:map, region:region, start:start, end:end});
-          region.bins.push({start:start, end:end, idx:idx});
+          var bin = {taxon_id:tax, region:rname, start:start, end:end, idx:idx};
+          bins.push(bin);
+          region.bins.push(bin);
           ++genomeBinCount;
         }
       });
       map.nbins = genomeBinCount;
     });
+
+    function checkResultsObject(binnedResults) {
+      var lastBin;
+
+      if(!(binnedResults &&
+          (typeof binnedResults === 'object') &&
+          binnedResults.data &&
+          binnedResults.displayName))
+      {
+        throw new Error('Please supply valid results parameter');
+      }
+
+      if(binnedResults.displayName && binnedResults.displayName !== binName) {
+        throw new Error('Results are for ' + binnedResults.displayName + ' bins. Should be ' + binName);
+      }
+
+      lastBin = _.max(Object.keys(binnedResults.data), function(binId) {
+        return +binId;
+      });
+
+      if(lastBin > bins.length) {
+        throw new Error('Bin count mismatch!');
+      }
+    }
+
+    genomeMaps.setResults = function(binnedResults) {
+      checkResultsObject(binnedResults);
+
+      var data = binnedResults.data;
+      for(var i = 0; i < bins.length; i++) {
+        var bin = bins[i];
+        bin.result = data[bin.idx] || 0;
+      }
+    };
+
+    genomeMaps.clearResults = function() {
+      for(var i = 0; i < bins.length; i++) {
+        var bin = bins[i];
+        delete bin.result;
+      }
+    };
 
     return {
       binnedGenomes: function() { return genomeMaps; },
@@ -214,12 +256,14 @@ module.exports = function(RAW_GENOME_DATA) {
 
   return {
     uniformBinMapper: function(binWidth) {
-      return bins(function getGlobalBinWidth() {
+      var name = 'uniform_' + binWidth + '_bin';
+      return bins(name, function getGlobalBinWidth() {
         return binWidth;
       })
     },
     fixedBinMapper: function(binsPerGenome) {
-      return bins(function determineBinWidthForGenome(genome) {
+      var name = 'fixed_' + binsPerGenome + '_bin';
+      return bins(name, function determineBinWidthForGenome(genome) {
         if (genome.assembledGenomeSize === 0) return 0;
 
         if (genome.assembledGenomeSize < 100000) {
