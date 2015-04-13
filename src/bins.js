@@ -21,110 +21,18 @@
 
 var isNumber = require('is-number');
 var _ = require('lodash');
+var Genomes = require('./genomes');
 
 module.exports = function(RAW_GENOME_DATA) {
 
-  function refactorMapRegions(regions) {
-    var indices = _.range(regions.names.length);
-    var objArr = _.zip(regions.names, regions.lengths, indices).map(function(region) {
-      return {
-        name: region[0],
-        size: region[1],
-        idx: region[2]
-      };
-    });
-    return _.indexBy(objArr, 'name');
-  }
-
   // generate new genome data structure from (immutable) raw data
-  function genomesMap() {
-    return _(RAW_GENOME_DATA).map(function(d) {
-      var regions = refactorMapRegions(d.regions);
-      var result = {
-        taxon_id: d.taxon_id,
-        assembledGenomeSize: d.length, // does not include UNANCHORED region
-        fullGenomeSize: _.reduce(regions, function(total, region) { return total + region.size}, 0),
-        regions: regions
-      };
-
-      if(result.fullGenomeSize < result.assembledGenomeSize) {
-        throw new Error(
-          'inconsistencies in genome sizes! The assembled length of ' +
-          d.taxon_id + '\'s genome (' + result.assembledGenomeSize +
-          ') is longer than the sum of all regions of that genome (' +
-          result.fullGenomeSize +')'
-        );
-      }
-      return result;
-    }).indexBy('taxon_id').value();
+  function genomesMap(binName, bins, getBinSizeForGenome) {
+    return new Genomes(RAW_GENOME_DATA, binName, bins, getBinSizeForGenome);
   }
 
   function bins(binName, getBinSizeForGenome) {
     var bins = [];
-    var genomeMaps = genomesMap();
-
-    _.forEach(genomeMaps, function(map) {
-      var tax = map.taxon_id;
-      var binSize = getBinSizeForGenome(map);
-      var genomeBinCount = 0;
-      map.startBin = bins.length;
-      _.forEach(map.regions, function(region, rname) {
-        var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
-        region.startBin = bins.length;
-        region.bins = [];
-        for(var j=0; j < nbins; j++) {
-          var idx = region.startBin + j;
-          var start = j*binSize+1;
-          var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
-          var bin = {taxon_id:tax, region:rname, start:start, end:end, idx:idx};
-          bins.push(bin);
-          region.bins.push(bin);
-          ++genomeBinCount;
-        }
-      });
-      map.nbins = genomeBinCount;
-    });
-
-    function checkResultsObject(binnedResults) {
-      var lastBin;
-
-      if(!(binnedResults &&
-          (typeof binnedResults === 'object') &&
-          binnedResults.data &&
-          binnedResults.displayName))
-      {
-        throw new Error('Please supply valid results parameter');
-      }
-
-      if(binnedResults.displayName && binnedResults.displayName !== binName) {
-        throw new Error('Results are for ' + binnedResults.displayName + ' bins. Should be ' + binName);
-      }
-
-      lastBin = _.max(Object.keys(binnedResults.data), function(binId) {
-        return +binId;
-      });
-
-      if(lastBin > bins.length) {
-        throw new Error('Bin count mismatch!');
-      }
-    }
-
-    genomeMaps.setResults = function(binnedResults) {
-      checkResultsObject(binnedResults);
-
-      var data = binnedResults.data;
-      for(var i = 0; i < bins.length; i++) {
-        var bin = bins[i];
-        bin.result = data[bin.idx] || 0;
-      }
-    };
-
-    genomeMaps.clearResults = function() {
-      for(var i = 0; i < bins.length; i++) {
-        var bin = bins[i];
-        delete bin.result;
-      }
-    };
+    var genomeMaps = genomesMap(binName, bins, getBinSizeForGenome);
 
     return {
       binnedGenomes: function() { return genomeMaps; },
@@ -135,10 +43,10 @@ module.exports = function(RAW_GENOME_DATA) {
         return bins[bin];
       },
       pos2bin: function(tax, region, position) {
-        if (!genomeMaps.hasOwnProperty(tax)) {
+        if (!genomeMaps._genomes.hasOwnProperty(tax)) {
           throw tax + ' not a known taxonomy id';
         }
-        var map = genomeMaps[tax];
+        var map = genomeMaps.get(tax);
         var binSize = getBinSizeForGenome(map);
         var posBin = map.regions;
         if (region === 'UNANCHORED' || !posBin.hasOwnProperty(region)) {
@@ -160,7 +68,7 @@ module.exports = function(RAW_GENOME_DATA) {
 
   function variableBins(bins) {
     // sort the bins to match the order given in the maps
-    var mapsObj = genomesMap();
+    var mapsObj = genomesMap()._genomes;
 
     // NB THIS FOREACH FUNCTION IS MODIFYING THE BIN OBJECTS
     // PASSED IN.
