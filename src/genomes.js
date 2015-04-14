@@ -11,6 +11,10 @@ function Genomes(rawData, binName, bins, getBinSizeForGenome) {
   }
 }
 
+Genomes.prototype.binCount = function() {
+  return this._bins.length;
+};
+
 Genomes.prototype.each = function(iteratee) {
   _.forOwn(this._genomes, iteratee, this);
 };
@@ -47,16 +51,16 @@ function mapGenomesToBins(genomes, getBinSizeForGenome) {
     var tax = genome.taxon_id;
     var binSize = getBinSizeForGenome(genome);
     var genomeBinCount = 0;
-    genome.startBin = bins.length;
+    genome.startBin = genomes.binCount();
     genome.eachRegion(function(region, rname) {
       var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
-      region.startBin = bins.length;
+      region.startBin = genomes.binCount();
       for(var j=0; j < nbins; j++) {
         var idx = region.startBin + j;
         var start = j*binSize+1;
         var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
         var bin = {taxon_id:tax, region:rname, start:start, end:end, idx:idx};
-        addBin(bin, genome, region);
+        addBin(bin, genomes, region);
         ++genomeBinCount;
       }
     });
@@ -64,8 +68,8 @@ function mapGenomesToBins(genomes, getBinSizeForGenome) {
   });
 }
 
-function addBin(bin, genome, region) {
-  genome._bins.push(bin);
+function addBin(bin, genomes, region) {
+  genomes._bins.push(bin);
   region._bins.push(bin);
 }
 
@@ -184,8 +188,16 @@ function updateRegionResults(region) {
   return region.results;
 }
 
+Region.prototype.firstBin = function() {
+  return this.binCount() ? this._bins[0] : undefined;
+};
+
 Region.prototype.eachBin = function(iteratee) {
   _.forEach(this._bins, iteratee);
+};
+
+Region.prototype.binCount = function(iteratee) {
+  return this._bins.length;
 };
 
 Region.prototype.reduceBins = function(reducer, initialValue) {

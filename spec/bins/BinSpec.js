@@ -2,9 +2,9 @@ describe('Bins', function () {
   // json response to http://data.gramene.org/maps/select?type=genome
   // converted into a commonJS module by prepending json doc with
   // `module.exports = `
-  var _ = require('lodash');
   var genomes = require('../support/genomes.js');
   var binsGenerator = require('../../src/bins');
+  var _ = require('lodash');
   var bins;
   var mapper_2Mb;
   var mapper_200;
@@ -293,7 +293,7 @@ describe('Bins', function () {
 
     // then
     expect(firstRegion.startBin).toEqual(chocolate_bin);
-    expect(firstRegion.bins.length).toEqual(23);
+    expect(firstRegion.binCount()).toEqual(23);
 
     expect(genome.startBin).toEqual(firstRegion.startBin);
     expect(genome.nbins).toEqual(200);
@@ -304,7 +304,7 @@ describe('Bins', function () {
     var binnedGenomes = mapper_200.binnedGenomes();
 
     // when
-    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).bins[0];
+    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).firstBin();
     var bin2pos = mapper_200.bin2pos(objBin.idx);
     var pos2bin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region_name, 1);
 
@@ -354,7 +354,7 @@ describe('Bins', function () {
     var binnedGenomes = mapper_200.binnedGenomes();
 
     // when
-    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).bins[0];
+    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).firstBin();
     binnedGenomes.setResults(binnedResults);
 
     // then
