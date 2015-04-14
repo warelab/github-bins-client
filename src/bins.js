@@ -42,24 +42,29 @@ module.exports = function(RAW_GENOME_DATA) {
         }
         return bins[bin];
       },
-      pos2bin: function(tax, region, position) {
-        if (!genomeMaps._genomes.hasOwnProperty(tax)) {
+      pos2bin: function(tax, rname, position) {
+        var genome = genomeMaps.get(tax);
+        if (!genome) {
           throw tax + ' not a known taxonomy id';
         }
-        var map = genomeMaps.get(tax);
-        var binSize = getBinSizeForGenome(map);
-        var posBin = map.regions;
-        if (region === 'UNANCHORED' || !posBin.hasOwnProperty(region)) {
-          // assume UNANCHORED
-          if (!posBin.hasOwnProperty('UNANCHORED')) {
-            throw region + ' not a known seq region';
-          }
-          return posBin['UNANCHORED'].startBin;
+        var binSize = getBinSizeForGenome(genome);
+        var region = genome.region(rname);
+        if (!region) {
+          // perhaps the user is requesting some scaffold
+          // that we have lumped into the 'unanchored' category
+          region = genome.region('UNANCHORED');
         }
-        if (position < 1 || position >= posBin[region].size) {
+        if (!region) {
+          throw rname + ' not a known seq region';
+        }
+        if (region.name === 'UNANCHORED') {
+          // the unanchored region only has one bin
+          return region.startBin;
+        }
+        if (position < 1 || position >= region.size) {
           throw 'position ' + position + ' out of range';
         }
-        return posBin[region].startBin + Math.floor((position-1)/binSize);
+        return region.startBin + Math.floor((position-1)/binSize);
       },
       nbins: bins.length,
       _getBinSizeForGenome: getBinSizeForGenome
@@ -74,7 +79,7 @@ module.exports = function(RAW_GENOME_DATA) {
     // PASSED IN.
     bins.map(function(bin) {
       bin.assembly = mapsObj[bin.taxon_id];
-      bin.region = bin.assembly.regions[bin.region];
+      bin.region = bin.assembly.region(bin.region);
       return bin;
     }).sort(function(a,b) {
       // check species
@@ -182,20 +187,20 @@ module.exports = function(RAW_GENOME_DATA) {
 
         function countBins(binSize) {
           var nbins = 0;
-          for(var region in genome.regions) {
-            if (region === 'UNANCHORED') {
+          genome.eachRegion(function(region) {
+            if (region.name === 'UNANCHORED') {
               nbins++
             }
             else {
-              nbins += Math.ceil(genome.regions[region].size / binSize);
+              nbins += Math.ceil(region.size / binSize);
             }
-          }
+          });
           return nbins;
         }
 
         var nbins = countBins(binSize);
         if (nbins > binsPerGenome) {
-          var a = Math.floor(genome.assembledGenomeSize / (binsPerGenome - _.size(genome.regions)));
+          var a = Math.floor(genome.assembledGenomeSize / (binsPerGenome - genome.regionCount()));
           var b = binSize;
           while (countBins(a) != binsPerGenome) {
             var m = Math.floor((a+b)/2);

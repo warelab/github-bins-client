@@ -1,18 +1,22 @@
 var _ = require('lodash');
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
+  this._genomes = createGenomeObjects(rawData);
+
   this.binName = binName;
   this._bins = bins;
-  this._genomes = refactorGenomes(rawData);
 
   if(getBinSizeForGenome) {
-    this.getBinSizeForGenome = getBinSizeForGenome;
-    this.mapGenomesToBins();
+    mapGenomesToBins(this, getBinSizeForGenome);
   }
 }
 
 Genomes.prototype.each = function(iteratee) {
   _.forOwn(this._genomes, iteratee, this);
+};
+
+Genomes.prototype.reduce = function(reducer, initialValue) {
+  return _.reduce(this._genomes, reducer, initialValue);
 };
 
 Genomes.prototype.get = function(taxonId) {
@@ -28,17 +32,7 @@ Genomes.prototype.setResults = function(binnedResults) {
     bin.results = data[bin.idx] || 0;
   }
 
-  this.each(function(genome) {
-    var gcount = _.reduce(genome.regions, function(gAcc, region) {
-      var rcount = _.reduce(region.bins, function(rAcc, bin) {
-        return rAcc + bin.results.count;
-      }, 0);
-      region.results = {count: rcount};
-      return gAcc + rcount;
-    }, 0);
-    genome.results = {count: gcount};
-  });
-
+  this.each(updateGenomeResults);
 };
 
 Genomes.prototype.clearResults = function() {
@@ -48,30 +42,32 @@ Genomes.prototype.clearResults = function() {
   }
 };
 
-Genomes.prototype.mapGenomesToBins = function() {
-  this.each(function(genome) {
+function mapGenomesToBins(genomes, getBinSizeForGenome) {
+  genomes.each(function(genome) {
     var tax = genome.taxon_id;
-    var binSize = this.getBinSizeForGenome(genome);
+    var binSize = getBinSizeForGenome(genome);
     var genomeBinCount = 0;
-    var bins = this._bins;
     genome.startBin = bins.length;
-    _.forEach(genome.regions, function(region, rname) {
+    genome.eachRegion(function(region, rname) {
       var nbins = (rname === 'UNANCHORED') ? 1 : Math.ceil(region.size/binSize);
       region.startBin = bins.length;
-      region.bins = [];
       for(var j=0; j < nbins; j++) {
         var idx = region.startBin + j;
         var start = j*binSize+1;
         var end = (j+1 === nbins) ? region.size : (j+1)*binSize;
         var bin = {taxon_id:tax, region:rname, start:start, end:end, idx:idx};
-        bins.push(bin);
-        region.bins.push(bin);
+        addBin(bin, genome, region);
         ++genomeBinCount;
       }
     });
     genome.nbins = genomeBinCount;
   });
-};
+}
+
+function addBin(bin, genome, region) {
+  genome._bins.push(bin);
+  region._bins.push(bin);
+}
 
 function checkResultsObject(binnedResults, binCount, binName) {
   var lastBin;
@@ -97,38 +93,107 @@ function checkResultsObject(binnedResults, binCount, binName) {
   }
 }
 
-function refactorGenomes(rawData) {
+function createGenomeObjects(rawData) {
   return _(rawData).map(function(d) {
-    var regions = refactorMapRegions(d.regions);
-    var result = {
+    return new Genome({
       taxon_id: d.taxon_id,
-      assembledGenomeSize: d.length, // does not include UNANCHORED region
-      fullGenomeSize: _.reduce(regions, function(total, region) { return total + region.size}, 0),
-      regions: regions
-    };
-
-    if(result.fullGenomeSize < result.assembledGenomeSize) {
-      throw new Error(
-        'inconsistencies in genome sizes! The assembled length of ' +
-        d.taxon_id + '\'s genome (' + result.assembledGenomeSize +
-        ') is longer than the sum of all regions of that genome (' +
-        result.fullGenomeSize +')'
-      );
-    }
-    return result;
+      assembledGenomeSize: d.length,
+      regions: d.regions
+    });
   }).indexBy('taxon_id').value();
 }
 
-function refactorMapRegions(regions) {
-  var indices = _.range(regions.names.length);
-  var objArr = _.zip(regions.names, regions.lengths, indices).map(function(region) {
-    return {
-      name: region[0],
-      size: region[1],
-      idx: region[2]
-    };
-  });
-  return _.indexBy(objArr, 'name');
+function Genome(params) {
+  this._regions = refactorMapRegions(params.regions);
+  this.taxon_id = params.taxon_id;
+  this.assembledGenomeSize = params.assembledGenomeSize;
+
+  // the above does not include UNANCHORED region. Let's include that here:
+  this.fullGenomeSize = this.reduceRegions(function(total, region) { return total + region.size}, 0);
+
+  if(this.fullGenomeSize < this.assembledGenomeSize) {
+    throw new Error(
+      'inconsistencies in genome sizes! The assembled length of ' +
+      this.taxon_id + '\'s genome (' + this.assembledGenomeSize +
+      ') is longer than the sum of all regions of that genome (' +
+      this.fullGenomeSize +')'
+    );
+  }
 }
+
+Genome.prototype.regionCount = function() {
+  return _.size(this._regions);
+};
+
+Genome.prototype.region = function(name) {
+  return this._regions[name];
+};
+
+Genome.prototype.eachRegion = function(iteratee) {
+  _.forOwn(this._regions, iteratee, this);
+};
+
+Genome.prototype.reduceRegions = function(reducer, initialValue) {
+  return _.reduce(this._regions, reducer, initialValue);
+};
+
+function updateGenomeResults(genome) {
+  var gcount = genome.reduceRegions(function(acc, region) {
+    var regionResults = updateRegionResults(region);
+    return acc + regionResults.count;
+  }, 0);
+  genome.results = {count: gcount};
+  return genome.results;
+}
+
+function refactorMapRegions(regions) {
+  if(!regions) {
+    console.log('No regions. I hope we are testing');
+    return {};
+  }
+  if(regions.lengths && regions.names) {
+    var indices = _.range(regions.names.length);
+    var regionArray = _.zip(regions.names, regions.lengths, indices).map(function (region) {
+      return new Region({
+        name: region[0],
+        size: region[1],
+        idx: region[2]
+      });
+    });
+    return _.indexBy(regionArray, 'name');
+  }
+  else {
+    return regions;
+  }
+}
+
+// REGION
+function Region(params) {
+  this.name = params.name;
+  this.size = params.size;
+  this.idx = params.idx;
+  this._bins = [];
+}
+
+function updateRegionResults(region) {
+  var count = region.reduceBins(function(acc, bin) {
+    return acc + bin.results.count;
+  }, 0);
+
+  region.results = { count: count };
+  return region.results;
+}
+
+Region.prototype.eachBin = function(iteratee) {
+  _.forEach(this._bins, iteratee);
+};
+
+Region.prototype.reduceBins = function(reducer, initialValue) {
+  return _.reduce(this._bins, reducer, initialValue);
+};
+
+// EXPORTS
+Genome.Region = Region;
+Genomes.Genome = Genome;
 
 module.exports = Genomes;

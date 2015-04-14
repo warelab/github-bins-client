@@ -231,45 +231,52 @@ describe('Bins', function () {
 
   it('fixedBinMapper should correctly determine bin width for test genomes', function () {
     // given
+    var Genome = require('../../src/genomes').Genome;
     var binSizeFunction = mapper_200._getBinSizeForGenome;
+
     var genomes = {
-      tooSmall: {
+      tooSmall: new Genome({
+        name: 'tooSmall',
         assembledGenomeSize: 2000,
         regions: { // calculated bin size is 10
           a: {size: 1000},
           b: {size: 1000}
         }
-      },
-      A: {
+      }),
+      A: new Genome({
+        name: 'A',
         assembledGenomeSize: 200000,
         regions: { // calculated bin size is 1007; shouldn't it be 1005?
-          a: {size: 1000},
-          b: {size: 1100},
-          c: {size: 197900}
+          a: {name: 'a', size: 1000},
+          b: {name: 'b', size: 1100},
+          c: {name: 'c', size: 197900}
         }
-      },
-      B: {
+      }),
+      B: new Genome({
+        name: 'B',
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010
-          a: {size: 100},
-          b: {size: 900},
-          c: {size: 198900},
-          UNANCHORED: {}
+          a: {name: 'a', size: 100},
+          b: {name: 'b', size: 900},
+          c: {name: 'c', size: 198900},
+          UNANCHORED: {name: 'UNANCHORED'}
         }
-      },
-      C: {
+      }),
+      C: new Genome({
+        name: 'C',
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010; shouldn't it be 1006?
-          a: {size: 0},
-          b: {size: 200000},
-          c: {size: 0},
-          UNANCHORED: {}
+          a: {name: 'a', size: 0},
+          b: {name: 'b', size: 200000},
+          c: {name: 'c', size: 0},
+          UNANCHORED: {name: 'UNANCHORED'}
         }
-      }
+      })
     };
 
-    expect(function () { binSizeFunction(genomes.tooSmall) })
-      .toThrow('assembled genome sizes between 1 and 100000 are not supported');
+    expect(function () {
+      binSizeFunction(genomes.tooSmall)
+    }).toThrow('assembled genome sizes between 1 and 100000 are not supported');
 
     expect(binSizeFunction(genomes.A)).toEqual(1007); // TODO this should be 1005?
     expect(binSizeFunction(genomes.B)).toEqual(1010);
@@ -282,7 +289,7 @@ describe('Bins', function () {
 
     // when
     var genome = binnedGenomes.get(chocolate_taxon_id);
-    var firstRegion = genome.regions[chocolate_region_name];
+    var firstRegion = genome.region(chocolate_region_name);
 
     // then
     expect(firstRegion.startBin).toEqual(chocolate_bin);
@@ -297,7 +304,7 @@ describe('Bins', function () {
     var binnedGenomes = mapper_200.binnedGenomes();
 
     // when
-    var objBin = binnedGenomes.get(chocolate_taxon_id).regions[chocolate_region_name].bins[0];
+    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).bins[0];
     var bin2pos = mapper_200.bin2pos(objBin.idx);
     var pos2bin = mapper_200.pos2bin(chocolate_taxon_id, chocolate_region_name, 1);
 
@@ -322,7 +329,7 @@ describe('Bins', function () {
     ];
 
     // then
-    throwers.map(function(fn) {
+    throwers.map(function (fn) {
       expect(fn).toThrow('Please supply valid results parameter');
     });
   });
@@ -341,13 +348,13 @@ describe('Bins', function () {
     expect(shouldThrow).toThrow('Results are for fixed_1000_bin bins. Should be fixed_200_bin');
   });
 
-  it('should map result counts to the appropriate bins', function() {
+  it('should map result counts to the appropriate bins', function () {
     // given
     var binnedResults = require('../support/results-fixed_200_bin');
     var binnedGenomes = mapper_200.binnedGenomes();
 
     // when
-    var objBin = binnedGenomes.get(chocolate_taxon_id).regions[chocolate_region_name].bins[0];
+    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).bins[0];
     binnedGenomes.setResults(binnedResults);
 
     // then
@@ -356,7 +363,7 @@ describe('Bins', function () {
 
   });
 
-  it('should throw if the largest bin index is greater than the number of bins', function() {
+  it('should throw if the largest bin index is greater than the number of bins', function () {
     // given
     var binnedResults = _.cloneDeep(require('../support/results-fixed_200_bin'));
     var binnedGenomes = mapper_200.binnedGenomes();
@@ -369,7 +376,7 @@ describe('Bins', function () {
     expect(thrower).toThrow('Bin count mismatch!');
   });
 
-  it('should roll up result counts to regions and genomes', function() {
+  it('should roll up result counts to regions and genomes', function () {
     // given
     var binnedResults = require('../support/results-fixed_200_bin');
     var binnedGenomes = mapper_200.binnedGenomes();
@@ -377,6 +384,6 @@ describe('Bins', function () {
 
     // then
     expect(binnedGenomes.get(chocolate_taxon_id).results.count).toEqual(29188);
-    expect(binnedGenomes.get(chocolate_taxon_id).regions[chocolate_region_name].results.count).toEqual(4087);
+    expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.count).toEqual(4087);
   });
 });
