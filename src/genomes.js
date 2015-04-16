@@ -1,3 +1,5 @@
+'use strict';
+
 var _ = require('lodash');
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
@@ -19,6 +21,10 @@ Genomes.prototype.each = function(iteratee) {
   _.forOwn(this._genomes, iteratee, this);
 };
 
+//Genomes.prototype.map = function(iteratee) {
+//  return _.map(this._genomes, iteratee, this);
+//};
+
 Genomes.prototype.reduce = function(reducer, initialValue) {
   return _.reduce(this._genomes, reducer, initialValue);
 };
@@ -36,7 +42,12 @@ Genomes.prototype.setResults = function(binnedResults) {
     bin.results = data[bin.idx] || 0;
   }
 
-  this.each(updateGenomeResults);
+  this.results = this.reduce(function(acc, genome) {
+    updateGenomeResults(genome);
+    acc.count += genome.results.count;
+    acc.bins += genome.results.bins;
+    return acc;
+  }, {count: 0, bins: 0});
 };
 
 Genomes.prototype.clearResults = function() {
@@ -137,17 +148,21 @@ Genome.prototype.eachRegion = function(iteratee) {
   _.forOwn(this._regions, iteratee, this);
 };
 
+Genome.prototype.mapRegions = function(iteratee) {
+  return _.map(this._regions, iteratee, this);
+};
+
 Genome.prototype.reduceRegions = function(reducer, initialValue) {
   return _.reduce(this._regions, reducer, initialValue);
 };
 
 function updateGenomeResults(genome) {
-  var gcount = genome.reduceRegions(function(acc, region) {
-    var regionResults = updateRegionResults(region);
-    return acc + regionResults.count;
-  }, 0);
-  genome.results = {count: gcount};
-  return genome.results;
+  genome.results  = genome.reduceRegions(function(acc, region) {
+    updateRegionResults(region);
+    acc.count += region.results.count;
+    acc.bins += region.results.bins;
+    return acc;
+  }, {count: 0, bins: 0});
 }
 
 function refactorMapRegions(regions) {
@@ -180,12 +195,13 @@ function Region(params) {
 }
 
 function updateRegionResults(region) {
-  var count = region.reduceBins(function(acc, bin) {
-    return acc + bin.results.count;
-  }, 0);
-
-  region.results = { count: count };
-  return region.results;
+  region.results = region.reduceBins(function(acc, bin) {
+    if(bin.results.count) {
+      acc.count += bin.results.count;
+      acc.bins++;
+    }
+    return acc;
+  }, {count: 0, bins: 0});
 }
 
 Region.prototype.firstBin = function() {
@@ -196,7 +212,11 @@ Region.prototype.eachBin = function(iteratee) {
   _.forEach(this._bins, iteratee);
 };
 
-Region.prototype.binCount = function(iteratee) {
+Region.prototype.mapBins = function(iteratee) {
+  return _.map(this._bins, iteratee);
+};
+
+Region.prototype.binCount = function() {
   return this._bins.length;
 };
 
