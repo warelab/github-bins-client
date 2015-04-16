@@ -386,4 +386,9 @@ describe('Bins', function () {
     expect(binnedGenomes.get(chocolate_taxon_id).results.count).toEqual(29188);
     expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.count).toEqual(4087);
   });
+
+  it('should throw with non-numeric param', function() {
+    expect(function() { bins.uniformBinMapper('foo'); }).toThrow('binWidth must be numeric: foo');
+    expect(function() { mapper_200 = bins.fixedBinMapper('bar'); }).toThrow('binsPerGenome must be numeric: bar');
+  })
 });

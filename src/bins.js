@@ -1,23 +1,23 @@
 'use strict';
 
 /*
-  bins - a module for bins defined on an ordered set of maps
-         such as the genomes in Gramene.
+ bins - a module for bins defined on an ordered set of maps
+ such as the genomes in Gramene.
 
-  Bin numbers are global so they can uniquely identify an interval
-  on a chromosome (aka. region). This is why the maps and regions need to be ordered.
+ Bin numbers are global so they can uniquely identify an interval
+ on a chromosome (aka. region). This is why the maps and regions need to be ordered.
 
-  Once the maps have been loaded, you can get a binMapper for a set of bins.
+ Once the maps have been loaded, you can get a binMapper for a set of bins.
 
-  The bins can be defined as follows:
-      a bin size for uniform-width bins in nucleotides
-      an arbitrary set of intervals {taxon_id: , region: , start: , end: }
+ The bins can be defined as follows:
+ a bin size for uniform-width bins in nucleotides
+ an arbitrary set of intervals {taxon_id: , region: , start: , end: }
 
-  bins = require('bins.js')(map_info);
-  mapper_2Mb = bins.binMapper('uniform',2000000);
-  bin = mapper_2Mb.pos2bin(taxon_id, region, position); // returns -1 for positions not in a bin
-  interval = mapper_2Mb.bin2pos(bin); // returns an interval that contains position
-*/
+ bins = require('bins.js')(map_info);
+ mapper_2Mb = bins.binMapper('uniform',2000000);
+ bin = mapper_2Mb.pos2bin(taxon_id, region, position); // returns -1 for positions not in a bin
+ interval = mapper_2Mb.bin2pos(bin); // returns an interval that contains position
+ */
 
 var isNumber = require('is-number');
 var _ = require('lodash');
@@ -170,12 +170,18 @@ module.exports = function(RAW_GENOME_DATA) {
   return {
     uniformBinMapper: function(binWidth) {
       var name = 'uniform_' + binWidth + '_bin';
+      if(!isNumber(binWidth)) {
+        throw new Error('binWidth must be numeric: ' + binWidth);
+      }
       return bins(name, function getGlobalBinWidth() {
         return binWidth;
       })
     },
     fixedBinMapper: function(binsPerGenome) {
       var name = 'fixed_' + binsPerGenome + '_bin';
+      if(!isNumber(binsPerGenome)) {
+        throw new Error('binsPerGenome must be numeric: ' + binsPerGenome);
+      }
       return bins(name, function determineBinWidthForGenome(genome) {
         if (genome.assembledGenomeSize === 0) return 0;
 
