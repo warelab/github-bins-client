@@ -40,7 +40,7 @@ Genomes.prototype.setResults = function(binnedResults, isTotal) {
   for(var i = 0; i < this._bins.length; i++) {
     var bin = this._bins[i],
         field = isTotal ? 'total' : 'results';
-    bin[field] = data[bin.idx] || 0;
+    bin[field] = data[bin.idx] || {count: 0};
   }
 
   this.results = this.reduce(function(acc, genome) {
@@ -220,6 +220,10 @@ Region.prototype.eachBin = function(iteratee) {
 
 Region.prototype.mapBins = function(iteratee) {
   return _.map(this._bins, iteratee);
+};
+
+Region.prototype.bin = function(idx) {
+  return this._bins[idx];
 };
 
 Region.prototype.binCount = function() {

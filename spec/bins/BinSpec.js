@@ -415,5 +415,18 @@ describe('Bins', function () {
   it('should throw with non-numeric param', function() {
     expect(function() { bins.uniformBinMapper('foo'); }).toThrow('binWidth must be numeric: foo');
     expect(function() { mapper_200 = bins.fixedBinMapper('bar'); }).toThrow('binsPerGenome must be numeric: bar');
-  })
+  });
+
+  it('with no genes in a result set, the results property of the bin should contain an object equal to `{count: 0}`', function() {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    binnedGenomes.setResults(binnedResults);
+
+    // when
+    var bin = binnedGenomes.get(4558).region('1').bin(10);
+
+    // then
+    expect(bin.results).toEqual({count: 0});
+  });
 });
