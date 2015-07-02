@@ -363,6 +363,20 @@ describe('Bins', function () {
 
   });
 
+  it('should use results as total if flag is passed', function () {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).firstBin();
+    binnedGenomes.setResults(binnedResults, true);
+
+    // then
+    expect(objBin.total).toBeDefined();
+    expect(objBin.total.count).toEqual(356);
+  });
+
   it('should throw if the largest bin index is greater than the number of bins', function () {
     // given
     var binnedResults = _.cloneDeep(require('../support/results-fixed_200_bin'));
@@ -387,8 +401,32 @@ describe('Bins', function () {
     expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.count).toEqual(4087);
   });
 
+  it('should roll up result totals to regions and genomes', function () {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    binnedGenomes.setResults(binnedResults, true);
+
+    // then
+    expect(binnedGenomes.get(chocolate_taxon_id).results.total).toEqual(29188);
+    expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.total).toEqual(4087);
+  });
+
   it('should throw with non-numeric param', function() {
     expect(function() { bins.uniformBinMapper('foo'); }).toThrow('binWidth must be numeric: foo');
     expect(function() { mapper_200 = bins.fixedBinMapper('bar'); }).toThrow('binsPerGenome must be numeric: bar');
-  })
+  });
+
+  it('with no genes in a result set, the results property of the bin should contain an object equal to `{count: 0}`', function() {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    binnedGenomes.setResults(binnedResults);
+
+    // when
+    var bin = binnedGenomes.get(4558).region('1').bin(10);
+
+    // then
+    expect(bin.results).toEqual({count: 0});
+  });
 });

@@ -33,21 +33,23 @@ Genomes.prototype.get = function(taxonId) {
   return this._genomes[taxonId];
 };
 
-Genomes.prototype.setResults = function(binnedResults) {
+Genomes.prototype.setResults = function(binnedResults, isTotal) {
   checkResultsObject(binnedResults, this._bins.length, this.binName);
 
   var data = binnedResults.data;
   for(var i = 0; i < this._bins.length; i++) {
-    var bin = this._bins[i];
-    bin.results = data[bin.idx] || 0;
+    var bin = this._bins[i],
+        field = isTotal ? 'total' : 'results';
+    bin[field] = data[bin.idx] || {count: 0};
   }
 
   this.results = this.reduce(function(acc, genome) {
     updateGenomeResults(genome);
     acc.count += genome.results.count;
+    acc.total += genome.results.total;
     acc.bins += genome.results.bins;
     return acc;
-  }, {count: 0, bins: 0});
+  }, {count: 0, bins: 0, total: 0});
 };
 
 Genomes.prototype.clearResults = function() {
@@ -160,9 +162,10 @@ function updateGenomeResults(genome) {
   genome.results  = genome.reduceRegions(function(acc, region) {
     updateRegionResults(region);
     acc.count += region.results.count;
+    acc.total += region.results.total;
     acc.bins += region.results.bins;
     return acc;
-  }, {count: 0, bins: 0});
+  }, {count: 0, bins: 0, total: 0});
 }
 
 function refactorMapRegions(regions) {
@@ -196,12 +199,15 @@ function Region(params) {
 
 function updateRegionResults(region) {
   region.results = region.reduceBins(function(acc, bin) {
-    if(bin.results.count) {
+    if(bin.results && bin.results.count) {
       acc.count += bin.results.count;
-      acc.bins++;
     }
+    if(bin.total && bin.total.count) {
+      acc.total += bin.total.count;
+    }
+    acc.bins++;
     return acc;
-  }, {count: 0, bins: 0});
+  }, {count: 0, bins: 0, total: 0});
 }
 
 Region.prototype.firstBin = function() {
@@ -214,6 +220,10 @@ Region.prototype.eachBin = function(iteratee) {
 
 Region.prototype.mapBins = function(iteratee) {
   return _.map(this._bins, iteratee);
+};
+
+Region.prototype.bin = function(idx) {
+  return this._bins[idx];
 };
 
 Region.prototype.binCount = function() {
