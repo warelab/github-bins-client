@@ -397,8 +397,21 @@ describe('Bins', function () {
     binnedGenomes.setResults(binnedResults);
 
     // then
+    expect(binnedGenomes.results.count).toEqual(1661880);
     expect(binnedGenomes.get(chocolate_taxon_id).results.count).toEqual(29188);
     expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.count).toEqual(4087);
+  });
+
+  it('should roll up bins count to regions and genomes', function () {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    binnedGenomes.setResults(binnedResults);
+
+    // then
+    expect(binnedGenomes.results.bins).toEqual(5987);
+    expect(binnedGenomes.get(chocolate_taxon_id).results.bins).toEqual(200);
+    expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.bins).toEqual(23);
   });
 
   it('should roll up result totals to regions and genomes', function () {
@@ -408,6 +421,7 @@ describe('Bins', function () {
     binnedGenomes.setResults(binnedResults, true);
 
     // then
+    expect(binnedGenomes.results.total).toEqual(1661880);
     expect(binnedGenomes.get(chocolate_taxon_id).results.total).toEqual(29188);
     expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.total).toEqual(4087);
   });

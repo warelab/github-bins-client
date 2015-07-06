@@ -201,11 +201,11 @@ function updateRegionResults(region) {
   region.results = region.reduceBins(function(acc, bin) {
     if(bin.results && bin.results.count) {
       acc.count += bin.results.count;
+      acc.bins++;
     }
     if(bin.total && bin.total.count) {
       acc.total += bin.total.count;
     }
-    acc.bins++;
     return acc;
   }, {count: 0, bins: 0, total: 0});
 }
