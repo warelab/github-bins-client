@@ -417,4 +417,38 @@ describe('Bins', function () {
     // then
     expect(bin.results).toEqual({count: 0});
   });
+
+  it('should have stats for the genomes object', function() {
+    // given
+    var binnedResults = require('../support/results-fixed_200_bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+
+    // when
+    binnedGenomes.setResults(binnedResults);
+    var stats = binnedGenomes.stats;
+
+    // then
+    expect(stats).toBeDefined();
+    expect(stats.genomes).toBeDefined();
+    expect(stats.bins).toBeDefined();
+
+    expect(stats.genomes.count).toEqual(39);
+    expect(stats.bins.count).toEqual(5979); // not 6009 because we filter out UNFILTERED
+
+    expect(stats.genomes.sum).toEqual(1661880);
+    expect(stats.bins.sum).toEqual(1339923);
+
+    expect(stats.genomes.min).toEqual(0);
+    expect(stats.bins.min).toEqual(0);
+
+    expect(stats.genomes.max).toEqual(146879);
+    expect(stats.bins.max).toEqual(1137);
+
+    expect(+stats.genomes.avg.toPrecision(3)).toEqual(42600);
+    expect(+stats.bins.avg.toPrecision(3)).toEqual(224);
+
+    expect(+stats.genomes.stdev.toPrecision(3)).toEqual(28600);
+    expect(+stats.bins.stdev.toPrecision(3)).toEqual(172);
+
+  });
 });
