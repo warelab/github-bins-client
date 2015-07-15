@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var genomeStats = require('./stats').genomeStats;
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
   this._genomes = createGenomeObjects(rawData);
@@ -20,10 +21,6 @@ Genomes.prototype.binCount = function() {
 Genomes.prototype.each = function(iteratee) {
   _.forOwn(this._genomes, iteratee, this);
 };
-
-//Genomes.prototype.map = function(iteratee) {
-//  return _.map(this._genomes, iteratee, this);
-//};
 
 Genomes.prototype.reduce = function(reducer, initialValue) {
   return _.reduce(this._genomes, reducer, initialValue);
@@ -49,6 +46,8 @@ Genomes.prototype.setResults = function(binnedResults) {
     acc.bins += genome.results.bins;
     return acc;
   }, {count: 0, bins: 0});
+
+  this.stats = genomeStats(this);
 };
 
 Genomes.prototype.clearResults = function() {
