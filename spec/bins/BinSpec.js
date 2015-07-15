@@ -363,20 +363,6 @@ describe('Bins', function () {
 
   });
 
-  it('should use results as total if flag is passed', function () {
-    // given
-    var binnedResults = require('../support/results-fixed_200_bin');
-    var binnedGenomes = mapper_200.binnedGenomes();
-
-    // when
-    var objBin = binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).firstBin();
-    binnedGenomes.setResults(binnedResults, true);
-
-    // then
-    expect(objBin.total).toBeDefined();
-    expect(objBin.total.count).toEqual(356);
-  });
-
   it('should throw if the largest bin index is greater than the number of bins', function () {
     // given
     var binnedResults = _.cloneDeep(require('../support/results-fixed_200_bin'));
@@ -412,18 +398,6 @@ describe('Bins', function () {
     expect(binnedGenomes.results.bins).toEqual(5987);
     expect(binnedGenomes.get(chocolate_taxon_id).results.bins).toEqual(200);
     expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.bins).toEqual(23);
-  });
-
-  it('should roll up result totals to regions and genomes', function () {
-    // given
-    var binnedResults = require('../support/results-fixed_200_bin');
-    var binnedGenomes = mapper_200.binnedGenomes();
-    binnedGenomes.setResults(binnedResults, true);
-
-    // then
-    expect(binnedGenomes.results.total).toEqual(1661880);
-    expect(binnedGenomes.get(chocolate_taxon_id).results.total).toEqual(29188);
-    expect(binnedGenomes.get(chocolate_taxon_id).region(chocolate_region_name).results.total).toEqual(4087);
   });
 
   it('should throw with non-numeric param', function() {

@@ -33,23 +33,22 @@ Genomes.prototype.get = function(taxonId) {
   return this._genomes[taxonId];
 };
 
-Genomes.prototype.setResults = function(binnedResults, isTotal) {
+Genomes.prototype.setResults = function(binnedResults) {
   checkResultsObject(binnedResults, this._bins.length, this.binName);
 
   var data = binnedResults.data;
   for(var i = 0; i < this._bins.length; i++) {
-    var bin = this._bins[i],
-        field = isTotal ? 'total' : 'results';
-    bin[field] = data[bin.idx] || {count: 0};
+    var bin = this._bins[i];
+
+    bin.results = data[bin.idx] || {count: 0};
   }
 
   this.results = this.reduce(function(acc, genome) {
     updateGenomeResults(genome);
     acc.count += genome.results.count;
-    acc.total += genome.results.total;
     acc.bins += genome.results.bins;
     return acc;
-  }, {count: 0, bins: 0, total: 0});
+  }, {count: 0, bins: 0});
 };
 
 Genomes.prototype.clearResults = function() {
@@ -162,10 +161,9 @@ function updateGenomeResults(genome) {
   genome.results  = genome.reduceRegions(function(acc, region) {
     updateRegionResults(region);
     acc.count += region.results.count;
-    acc.total += region.results.total;
     acc.bins += region.results.bins;
     return acc;
-  }, {count: 0, bins: 0, total: 0});
+  }, {count: 0, bins: 0});
 }
 
 function refactorMapRegions(regions) {
@@ -203,11 +201,8 @@ function updateRegionResults(region) {
       acc.count += bin.results.count;
       acc.bins++;
     }
-    if(bin.total && bin.total.count) {
-      acc.total += bin.total.count;
-    }
     return acc;
-  }, {count: 0, bins: 0, total: 0});
+  }, {count: 0, bins: 0});
 }
 
 Region.prototype.firstBin = function() {
