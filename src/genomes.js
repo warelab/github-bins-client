@@ -112,6 +112,7 @@ function createGenomeObjects(rawData) {
   return _(rawData).map(function(d) {
     return new Genome({
       taxon_id: d.taxon_id,
+      system_name: d.system_name,
       assembledGenomeSize: d.length,
       regions: d.regions
     });
@@ -122,6 +123,7 @@ function Genome(params) {
   this._regions = refactorMapRegions(params.regions);
   this.taxon_id = params.taxon_id;
   this.assembledGenomeSize = params.assembledGenomeSize;
+  this.system_name = params.system_name;
 
   // the above does not include UNANCHORED region. Let's include that here:
   this.fullGenomeSize = this.reduceRegions(function(total, region) { return total + region.size}, 0);
