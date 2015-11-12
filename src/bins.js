@@ -169,7 +169,7 @@ module.exports = function(RAW_GENOME_DATA) {
 
   return {
     uniformBinMapper: function(binWidth) {
-      var name = 'uniform_' + binWidth + '_bin';
+      var name = 'uniform_' + binWidth + '__bin';
       if(!isNumber(binWidth)) {
         throw new Error('binWidth must be numeric: ' + binWidth);
       }
@@ -178,7 +178,7 @@ module.exports = function(RAW_GENOME_DATA) {
       })
     },
     fixedBinMapper: function(binsPerGenome) {
-      var name = 'fixed_' + binsPerGenome + '_bin';
+      var name = 'fixed_' + binsPerGenome + '__bin';
       if(!isNumber(binsPerGenome)) {
         throw new Error('binsPerGenome must be numeric: ' + binsPerGenome);
       }
