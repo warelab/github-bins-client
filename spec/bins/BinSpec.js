@@ -420,6 +420,17 @@ describe('Bins', function () {
 
   it('should have stats for the genomes object', function() {
     // given
+    var genomes = require('../support/genomes');
+
+    // when
+    var sum = _.sum(genomes.data, 'num_genes');
+
+    // then
+    expect(sum).toEqual(1568831); // this is the number of genes that are db_type:"core" (i.e. not "otherfeatures")
+  });
+
+    it('should have stats for the genomes object', function() {
+    // given
     var binnedResults = require('../support/results-fixed_200__bin');
     var binnedGenomes = mapper_200.binnedGenomes();
 
