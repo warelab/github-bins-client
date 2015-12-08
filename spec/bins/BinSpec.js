@@ -2,7 +2,7 @@ describe('Bins', function () {
   // json response to http://data.gramene.org/maps/select?type=genome
   // converted into a commonJS module by prepending json doc with
   // `module.exports = `
-  var genomes = require('../support/genomes.js');
+  var genomes = require('../support/genomes.json').data;
   var binsGenerator = require('../../src/bins');
   var _ = require('lodash');
   var bins;
@@ -24,7 +24,7 @@ describe('Bins', function () {
 
 
   beforeEach(function () {
-    bins = binsGenerator(genomes.data.response);
+    bins = binsGenerator(genomes);
     mapper_2Mb = bins.uniformBinMapper(2000000);
     mapper_200 = bins.fixedBinMapper(200);
   });
@@ -223,7 +223,7 @@ describe('Bins', function () {
   });
 
   it('should create the requested number of fixed bins', function () {
-    var expectedNumberOfBins = genomes.data.response.reduce(function (acc, genome) {
+    var expectedNumberOfBins = genomes.reduce(function (acc, genome) {
       return acc + (genome.length > 0 ? 200 : 1);
     }, 0);
     expect(mapper_200.nbins).toEqual(expectedNumberOfBins);
@@ -419,6 +419,17 @@ describe('Bins', function () {
   });
 
   it('should have stats for the genomes object', function() {
+    // given
+    var genomes = require('../support/genomes');
+
+    // when
+    var sum = _.sum(genomes.data, 'num_genes');
+
+    // then
+    expect(sum).toEqual(1568831); // this is the number of genes that are db_type:"core" (i.e. not "otherfeatures")
+  });
+
+    it('should have stats for the genomes object', function() {
     // given
     var binnedResults = require('../support/results-fixed_200__bin');
     var binnedGenomes = mapper_200.binnedGenomes();

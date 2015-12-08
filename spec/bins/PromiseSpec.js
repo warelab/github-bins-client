@@ -13,20 +13,12 @@ describe('LatestGenome', function() {
     spyOn(axios, 'get').andReturn(expectedResult);
   });
 
-  it('should work with local data file', function() {
-    binPromiser.get(true).then(function(binGenerator) {
-      expect(binGenerator).toBeDefined();
-    }).catch(function(error) {
-      expect(error).toBeUndefined();
-    });
-  });
-
-  it('should request data from http://data.gramene.org/maps/select?type=genome&rows=999999', function() {
+  xit('should request data from http://data.gramene.org/maps?rows=-1', function() {
     // when
     binPromiser.get();
 
     // then
-    expect(axios.get.mostRecentCall.args[0]).toEqual('http://data.gramene.org/maps/select?type=genome&rows=999999');
+    expect(axios.get.mostRecentCall.args[0]).toEqual('http://data.gramene.org/maps?rows=-1');
   });
 
   it('should return a bin generator', function() {
