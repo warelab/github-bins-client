@@ -21,13 +21,13 @@ function calcStats(array) {
   return result;
 }
 
-function globalStatistics(genomes) {
+function globalStatistics(bins, genomes) {
   var anchoredBins, stats;
 
   stats = {};
-  anchoredBins = _.filter(genomes._bins, function (bin) { return bin.region !== 'UNANCHORED' });
+  anchoredBins = _.filter(bins, function (bin) { return bin.region !== 'UNANCHORED' });
 
-  stats.genomes = calcStats(genomes._genomes);
+  stats.genomes = calcStats(genomes);
   stats.bins = calcStats(anchoredBins);
 
   return stats;
