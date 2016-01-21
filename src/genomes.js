@@ -4,7 +4,8 @@ var _ = require('lodash');
 var genomeStats = require('./stats').genomeStats;
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
-  this._genomes = createGenomeObjects(rawData);
+  this._genomesArray = createGenomeObjects(rawData);
+  this._genomesLUT = _.indexBy(this._genomesArray, 'taxon_id');
 
   this.binName = binName;
   this._bins = bins;
@@ -19,15 +20,18 @@ Genomes.prototype.binCount = function() {
 };
 
 Genomes.prototype.each = function(iteratee) {
-  _.forOwn(this._genomes, iteratee, this);
+  _.forEach(this._genomesArray, function(region) {
+    iteratee(region, region.name);
+  }, this);
+  //_.forOwn(this._genomesLUT, iteratee, this);
 };
 
 Genomes.prototype.reduce = function(reducer, initialValue) {
-  return _.reduce(this._genomes, reducer, initialValue);
+  return _.reduce(this._genomesLUT, reducer, initialValue);
 };
 
 Genomes.prototype.get = function(taxonId) {
-  return this._genomes[taxonId];
+  return this._genomesLUT[taxonId];
 };
 
 Genomes.prototype.setResults = function(binnedResults) {
@@ -47,7 +51,7 @@ Genomes.prototype.setResults = function(binnedResults) {
     return acc;
   }, {count: 0, bins: 0});
 
-  this.stats = genomeStats(this);
+  this.stats = genomeStats(this._bins, this._genomesArray);
 };
 
 Genomes.prototype.clearResults = function() {
@@ -116,11 +120,12 @@ function createGenomeObjects(rawData) {
       assembledGenomeSize: d.length,
       regions: d.regions
     });
-  }).indexBy('taxon_id').value();
+  }).sortBy('taxon_id').value();
 }
 
 function Genome(params) {
-  this._regions = refactorMapRegions(params.regions);
+  this._regionsArray = refactorMapRegions(params.regions);
+  this._regionsLUT = _.indexBy(this._regionsArray, 'name');
   this.taxon_id = params.taxon_id;
   this.assembledGenomeSize = params.assembledGenomeSize;
   this.system_name = params.system_name;
@@ -139,23 +144,25 @@ function Genome(params) {
 }
 
 Genome.prototype.regionCount = function() {
-  return _.size(this._regions);
+  return _.size(this._regionsLUT);
 };
 
 Genome.prototype.region = function(name) {
-  return this._regions[name];
+  return this._regionsLUT[name];
 };
 
 Genome.prototype.eachRegion = function(iteratee) {
-  _.forOwn(this._regions, iteratee, this);
+  _.forEach(this._regionsArray, function(region) {
+    iteratee(region, region.name);
+  }, this);
 };
 
 Genome.prototype.mapRegions = function(iteratee) {
-  return _.map(this._regions, iteratee, this);
+  return _.map(this._regionsLUT, iteratee, this);
 };
 
 Genome.prototype.reduceRegions = function(reducer, initialValue) {
-  return _.reduce(this._regions, reducer, initialValue);
+  return _.reduce(this._regionsLUT, reducer, initialValue);
 };
 
 function updateGenomeResults(genome) {
@@ -168,23 +175,24 @@ function updateGenomeResults(genome) {
 }
 
 function refactorMapRegions(regions) {
+  var regionArray, rname, indices;
   if(!regions) {
     console.log('No regions. I hope we are testing');
     return {};
   }
   if(regions.lengths && regions.names) {
-    var indices = _.range(regions.names.length);
-    var regionArray = _.zip(regions.names, regions.lengths, indices).map(function (region) {
+    indices = _.range(regions.names.length);
+    regionArray = _.zip(regions.names, regions.lengths, indices).map(function (region) {
       return new Region({
         name: region[0],
         size: region[1],
         idx: region[2]
       });
     });
-    return _.indexBy(regionArray, 'name');
+    return regionArray;
   }
   else {
-    return regions;
+    throw new Error("regions must have lengths and names defined");
   }
 }
 
