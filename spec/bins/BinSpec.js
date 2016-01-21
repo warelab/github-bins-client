@@ -239,37 +239,32 @@ describe('Bins', function () {
         name: 'tooSmall',
         assembledGenomeSize: 2000,
         regions: { // calculated bin size is 10
-          a: {size: 1000},
-          b: {size: 1000}
+          names: ['a', 'b'],
+          lengths: [1000, 1000]
         }
       }),
       A: new Genome({
         name: 'A',
         assembledGenomeSize: 200000,
         regions: { // calculated bin size is 1007; shouldn't it be 1005?
-          a: {name: 'a', size: 1000},
-          b: {name: 'b', size: 1100},
-          c: {name: 'c', size: 197900}
+          names: ['a', 'b', 'c'],
+          lengths: [1000, 1100, 197900]
         }
       }),
       B: new Genome({
         name: 'B',
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010
-          a: {name: 'a', size: 100},
-          b: {name: 'b', size: 900},
-          c: {name: 'c', size: 198900},
-          UNANCHORED: {name: 'UNANCHORED'}
+          names: ['a', 'b', 'c', 'UNANCHORED'],
+          lengths: [100, 900, 198900]
         }
       }),
       C: new Genome({
         name: 'C',
         assembledGenomeSize: 200000,
         regions: { // cacluated bin size is 1010; shouldn't it be 1006?
-          a: {name: 'a', size: 0},
-          b: {name: 'b', size: 200000},
-          c: {name: 'c', size: 0},
-          UNANCHORED: {name: 'UNANCHORED'}
+          names: ['a', 'b', 'c', 'UNANCHORED'],
+          lengths: [0, 200000, 0]
         }
       })
     };

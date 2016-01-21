@@ -73,12 +73,12 @@ module.exports = function(RAW_GENOME_DATA) {
 
   function variableBins(bins) {
     // sort the bins to match the order given in the maps
-    var mapsObj = genomesMap()._genomes;
+    var genomes = genomesMap();
 
     // NB THIS FOREACH FUNCTION IS MODIFYING THE BIN OBJECTS
     // PASSED IN.
     bins.map(function(bin) {
-      bin.assembly = mapsObj[bin.taxon_id];
+      bin.assembly = genomes.get(bin.taxon_id);
       bin.region = bin.assembly.region(bin.region);
       return bin;
     }).sort(function(a,b) {
