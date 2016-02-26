@@ -2,7 +2,7 @@ describe('Bins', function () {
   // json response to http://data.gramene.org/maps/select?type=genome
   // converted into a commonJS module by prepending json doc with
   // `module.exports = `
-  var genomes = require('../support/genomes.json').data;
+  var genomes = require('../support/genomes.json').obj;
   var binsGenerator = require('../../src/bins');
   var _ = require('lodash');
   var bins;
@@ -415,10 +415,9 @@ describe('Bins', function () {
 
   it('should have stats for the genomes object', function() {
     // given
-    var genomes = require('../support/genomes');
 
     // when
-    var sum = _.sum(genomes.data, 'num_genes');
+    var sum = _.sum(genomes, 'num_genes');
 
     // then
     expect(sum).toEqual(1568831); // this is the number of genes that are db_type:"core" (i.e. not "otherfeatures")
