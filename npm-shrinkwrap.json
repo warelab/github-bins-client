@@ -1,6 +1,6 @@
 {
   "name": "gramene-bins-client",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "dependencies": {
     "gramene-search-client": {
       "version": "2.6.1",
