@@ -1,5 +1,6 @@
 var Q = require('q');
 var genomeFixture = require('../support/genomes');
+var client = require('gramene-search-client').client.grameneClient;
 
 describe('LatestGenome', function() {
 
@@ -8,6 +9,8 @@ describe('LatestGenome', function() {
   beforeEach(function() {
     binPromiser = require('../../src/promise');
     expectedResult = Q(genomeFixture);
+
+    spyOn(client, 'then').andReturn(expectedResult);
   });
 
   it('should return a bin generator', function() {

@@ -1,5 +1,5 @@
 {
-  "data": [
+  "obj": [
     {"_id":"GCA_000091205.1","db":"cyanidioschyzon_merolae_core_48_82_1","taxon_id":280699,"system_name":"cyanidioschyzon_merolae","type":"genome","length":16728945,"regions":{"names":["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","Mito","Chloro"],"lengths":[422616,457013,481791,513455,528682,536163,584452,739753,810151,839707,852849,859119,866983,852727,902900,908485,1232258,1253087,1282939,1621617,32211,149987]},"num_genes":5106}
   ,
     {"_id":"GCA_000001735.1","db":"arabidopsis_thaliana_core_48_82_10","taxon_id":3702,"system_name":"arabidopsis_thaliana","type":"genome","length":119667750,"regions":{"names":["1","2","3","4","5","Mt","Pt"],"lengths":[30427671,19698289,23459830,18585056,26975502,366924,154478]},"num_genes":33602}
