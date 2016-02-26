@@ -1,7 +1,6 @@
 'use strict';
 
 var grameneClient = require('gramene-search-client').client.grameneClient;
-var axios = require('axios');
 var Q = require('q');
 var bins = require('./bins');
 
@@ -22,7 +21,6 @@ module.exports = {
         });
         return deferred.promise;
       });
-      //src = axios.get('http://devdata.gramene.org/maps?type=genome&rows=-1');
     }
     return src
       .then(justTheData)
