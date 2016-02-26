@@ -1,3 +1,6 @@
+'use strict';
+
+var grameneClient = require('gramene-search-client').client.grameneClient;
 var axios = require('axios');
 var Q = require('q');
 var bins = require('./bins');
@@ -9,7 +12,17 @@ module.exports = {
       src = Q(require('../spec/support/genomes'));
     }
     else {
-      src = axios.get('http://devdata.gramene.org/maps?type=genome&rows=-1');
+      src = grameneClient.then(function(client) {
+        var deferred, params;
+        deferred = Q.defer();
+        params = {rows: -1, type: "genome"};
+        client['Data access'].maps(params, function(response) {
+          response.client = client;
+          deferred.resolve(response);
+        });
+        return deferred.promise;
+      });
+      //src = axios.get('http://devdata.gramene.org/maps?type=genome&rows=-1');
     }
     return src
       .then(justTheData)
@@ -18,7 +31,7 @@ module.exports = {
 };
 
 function justTheData(response) {
-  return response.data;
+  return response.obj;
 }
 
 function binPromise(data) {
