@@ -1,10 +1,10 @@
 {
   "name": "gramene-bins-client",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "dependencies": {
     "gramene-search-client": {
       "version": "2.6.1",
-      "from": "gramene-search-client@*",
+      "from": "gramene-search-client@>=2.6.1 <3.0.0",
       "resolved": "https://registry.npmjs.org/gramene-search-client/-/gramene-search-client-2.6.1.tgz",
       "dependencies": {
         "query-string": {

@@ -1,4 +1,3 @@
-var axios = require('axios');
 var Q = require('q');
 var genomeFixture = require('../support/genomes');
 
@@ -9,16 +8,6 @@ describe('LatestGenome', function() {
   beforeEach(function() {
     binPromiser = require('../../src/promise');
     expectedResult = Q(genomeFixture);
-
-    spyOn(axios, 'get').andReturn(expectedResult);
-  });
-
-  xit('should request data from http://data.gramene.org/maps?rows=-1', function() {
-    // when
-    binPromiser.get();
-
-    // then
-    expect(axios.get.mostRecentCall.args[0]).toEqual('http://data.gramene.org/maps?rows=-1');
   });
 
   it('should return a bin generator', function() {
