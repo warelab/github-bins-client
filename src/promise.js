@@ -1,6 +1,5 @@
 'use strict';
 
-var grameneClient = require('gramene-search-client').client.grameneClient;
 var Q = require('q');
 var bins = require('./bins');
 
@@ -11,6 +10,7 @@ module.exports = {
       src = Q(require('../spec/support/genomes'));
     }
     else {
+      var grameneClient = require('gramene-search-client').client.grameneClient;
       src = grameneClient.then(function(client) {
         var deferred, params;
         deferred = Q.defer();
