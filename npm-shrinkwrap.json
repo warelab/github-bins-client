@@ -1,6 +1,6 @@
 {
   "name": "gramene-bins-client",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "dependencies": {
     "argparse": {
       "version": "1.0.3",
