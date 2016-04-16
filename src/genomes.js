@@ -158,11 +158,11 @@ Genome.prototype.eachRegion = function(iteratee) {
 };
 
 Genome.prototype.mapRegions = function(iteratee) {
-  return _.map(this._regionsLUT, iteratee, this);
+  return _.map(this._regionsArray, iteratee, this);
 };
 
 Genome.prototype.reduceRegions = function(reducer, initialValue) {
-  return _.reduce(this._regionsLUT, reducer, initialValue);
+  return _.reduce(this._regionsArray, reducer, initialValue);
 };
 
 function updateGenomeResults(genome) {
