@@ -21,7 +21,7 @@ function calcStats(array) {
   return result;
 }
 
-function globalStatistics(bins, genomes) {
+function globalStatistics(bins, genomes, setResultsCount) {
   var anchoredBins, stats;
 
   stats = {};
@@ -29,6 +29,7 @@ function globalStatistics(bins, genomes) {
 
   stats.genomes = calcStats(genomes);
   stats.bins = calcStats(anchoredBins);
+  stats.timesSetResultsHasBeenCalled = setResultsCount;
 
   return stats;
 }
