@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var genomeStats = require('./stats').genomeStats;
+var setResultsCount = 0;
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
   this._genomesArray = createGenomeObjects(rawData);
@@ -51,7 +52,9 @@ Genomes.prototype.setResults = function(binnedResults) {
     return acc;
   }, {count: 0, bins: 0});
 
-  this.stats = genomeStats(this._bins, this._genomesArray);
+  ++setResultsCount;
+  
+  this.stats = genomeStats(this._bins, this._genomesArray, setResultsCount);
 };
 
 Genomes.prototype.clearResults = function() {
