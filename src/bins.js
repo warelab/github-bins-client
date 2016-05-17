@@ -169,7 +169,7 @@ module.exports = function(RAW_GENOME_DATA) {
 
   return {
     uniformBinMapper: function(binWidth) {
-      var name = 'uniform_' + binWidth + '__bin';
+      var name = 'uniform_' + binWidth + 'Mb__bin';
       if(!isNumber(binWidth)) {
         throw new Error('binWidth must be numeric: ' + binWidth);
       }
