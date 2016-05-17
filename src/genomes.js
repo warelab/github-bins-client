@@ -20,6 +20,10 @@ Genomes.prototype.binCount = function() {
   return this._bins.length;
 };
 
+Genomes.prototype.getBin = function(idx) {
+  return this._bins[idx];
+};
+
 Genomes.prototype.each = function(iteratee) {
   _.forEach(this._genomesArray, function(region) {
     iteratee(region, region.name);
