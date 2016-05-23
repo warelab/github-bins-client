@@ -456,4 +456,243 @@ describe('Bins', function () {
     expect(+stats.bins.stdev.toPrecision(3)).toEqual(172);
 
   });
+
+  it('should return a bin for a given index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = 1;
+
+    // when
+    var bin = binnedGenomes.getBin(testBinIdx);
+
+    expect(bin.idx).toEqual(testBinIdx);
+  });
+
+  it('should return a bin for a given index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = 1000;
+
+    // when
+    var bin = binnedGenomes.getBin(testBinIdx);
+
+    expect(bin.idx).toEqual(testBinIdx);
+  });
+
+  it('should not return a bin for an illegal index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = 1000000000;
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn).toThrow("Supplied index out of range.");
+  });
+
+  it('should not return a bin for a negative index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = -1;
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn).toThrow("Supplied index out of range.");
+  });
+
+  it('should not return a bin if the index is equal to the total number of bins', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = binnedGenomes.binCount();
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn).toThrow("Supplied index out of range.");
+  });
+
+  it('should not return a bin for a Date index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = new Date();
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn)
+        .toThrow("Supplied index not a finite number.");
+  });
+  
+  it('should not return a bin if index argument is NaN', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = NaN;
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn).toThrow("Supplied index not a finite number.");
+  });
+  
+  it('should not return a bin if index argument is infinite', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var testBinIdx = Infinity;
+
+    // when
+    var binFn = function() {binnedGenomes.getBin(testBinIdx)};
+
+    // then
+    expect(binFn).toThrow("Supplied index not a finite number.");
+  });
+
+  it('should return a list of bins in a range', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 1;
+    var endBinIdx = 1000;
+
+    // when
+    var bins = binnedGenomes.getBins(startBinIdx, endBinIdx);
+
+    expect(bins.length).toEqual(endBinIdx - startBinIdx + 1); // start and end indexes, inclusive.
+    expect(_.head(bins).idx).toEqual(startBinIdx);
+    expect(_.last(bins).idx).toEqual(endBinIdx)
+  });
+
+  it('should return a list of bins in a range', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 0;
+    var endBinIdx = 999;
+
+    // when
+    var bins = binnedGenomes.getBins(startBinIdx, endBinIdx);
+
+    expect(bins.length).toEqual(endBinIdx - startBinIdx + 1); // start and end indexes, inclusive.
+    expect(_.head(bins).idx).toEqual(startBinIdx);
+    expect(_.last(bins).idx).toEqual(endBinIdx)
+  });
+
+  it('should return a list of bins in a range', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 1000;
+    var endBinIdx = 2000;
+
+    // when
+    var bins = binnedGenomes.getBins(startBinIdx, endBinIdx);
+
+    expect(bins.length).toEqual(endBinIdx - startBinIdx + 1); // start and end indexes, inclusive.
+    expect(_.head(bins).idx).toEqual(startBinIdx);
+    expect(_.last(bins).idx).toEqual(endBinIdx)
+  });
+
+  it('should return all bins using start of 0 and end of binCount()', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 0;
+    var endBinIdx = binnedGenomes.binCount() - 1;
+
+    // when
+    var bins = binnedGenomes.getBins(startBinIdx, endBinIdx);
+
+    expect(bins.length).toEqual(endBinIdx - startBinIdx + 1); // start and end indexes, inclusive.
+    expect(_.head(bins).idx).toEqual(startBinIdx);
+    expect(_.last(bins).idx).toEqual(endBinIdx)
+  });
+
+  it('should return all bins', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 0;
+    var endBinIdx = binnedGenomes.binCount() - 1;
+
+    // when
+    var allBins = binnedGenomes.allBins();
+    var lessSugar = binnedGenomes.getBins(startBinIdx, endBinIdx);
+
+    // then
+    expect(allBins).toEqual(lessSugar);
+  });
+
+  it('modifying result of all bins should not alter state of genomes', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var allBins = binnedGenomes.allBins();
+
+    allBins.push('nefarious');
+    var removed = allBins.shift(); // remove first
+    var allBinsAgain = binnedGenomes.allBins();
+
+    // then
+    expect(_.last(allBins)).toEqual('nefarious');
+    expect(removed).toEqual(_.head(allBinsAgain));
+    expect(_.head(allBins)).toEqual(allBinsAgain[1]);
+    expect(_.last(allBinsAgain)).not.toEqual('nefarious');
+  });
+
+  it('should not return a list of bins if the start index is after the end index', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 1000;
+    var endBinIdx = 1;
+
+    // when
+    var binsFn = function() {binnedGenomes.getBins(startBinIdx, endBinIdx)};
+
+    // then
+    expect(binsFn).toThrow("Start index is after end index.");
+  });
+
+  it('should not return a list of bins if the start index is NaN', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = NaN;
+    var endBinIdx = 1;
+
+    // when
+    var binsFn = function() {binnedGenomes.getBins(startBinIdx, endBinIdx)};
+
+    // then
+    expect(binsFn).toThrow("Supplied index not a finite number.");
+  });
+
+  it('should not return a list of bins if the end index is NaN', function() {
+    // given
+    // var binnedResults = require('../support/results-fixed_200__bin');
+    var binnedGenomes = mapper_200.binnedGenomes();
+    var startBinIdx = 1;
+    var endBinIdx = NaN;
+
+    // when
+    var binsFn = function() {binnedGenomes.getBins(startBinIdx, endBinIdx)};
+
+    // then
+    expect(binsFn).toThrow("Supplied index not a finite number.");
+  });
+
+
 });

@@ -21,8 +21,32 @@ Genomes.prototype.binCount = function() {
 };
 
 Genomes.prototype.getBin = function(idx) {
+  checkIdx(idx, this._bins);
   return this._bins[idx];
 };
+
+Genomes.prototype.getBins = function(startIdx, endIdx) {
+  checkIdx(startIdx, this._bins);
+  checkIdx(endIdx, this._bins);
+
+  if(startIdx > endIdx) {
+    throw new Error("Start index is after end index.");
+  }
+  return _.slice(this._bins, startIdx, endIdx + 1);
+};
+
+Genomes.prototype.allBins = function() {
+  return _.clone(this._bins);
+};
+
+function checkIdx(idx, bins) {
+  if( !_.isFinite(idx) ) {
+    throw new Error("Supplied index not a finite number.");
+  }
+  if(idx < 0 || idx > bins.length - 1) {
+    throw new Error("Supplied index out of range.");
+  }
+}
 
 Genomes.prototype.each = function(iteratee) {
   _.forEach(this._genomesArray, function(region) {
