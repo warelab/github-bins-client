@@ -694,5 +694,13 @@ describe('Bins', function () {
     expect(binsFn).toThrow("Supplied index not a finite number.");
   });
 
+  it('should not fail if the bin with assignment fails to converge', function() {
+    var dodgyGenome = [{"_id":"GCA_000341285.1","db":"plants_rhodophyta1_collection_core_51_85_1","taxon_id":130081,"system_name":"galdieria_sulphuraria","type":"genome","length":180086,"regions":{"names":["Pt","UNANCHORED"],"lengths":[180086,104800334]},"num_genes":16564}];
+    var dodgyBins = binsGenerator(dodgyGenome);
 
+    // this used to be an infinite loop.
+    var dodgyMapper = dodgyBins.fixedBinMapper(1000);
+
+    expect(true).toBe(true);
+  });
 });
