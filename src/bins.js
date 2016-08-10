@@ -208,7 +208,7 @@ module.exports = function(RAW_GENOME_DATA) {
         if (nbins > binsPerGenome) {
           var a = Math.floor(genome.assembledGenomeSize / (binsPerGenome - genome.regionCount()));
           var b = binSize;
-          while (a != b && countBins(a) != binsPerGenome) { // infinite loop without a != b
+          while (a != b && countBins(a) != binsPerGenome) {
             var m = Math.floor((a+b)/2);
             var mbins = countBins(m);
             if (mbins <= binsPerGenome) {
