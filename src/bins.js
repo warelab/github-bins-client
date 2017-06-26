@@ -212,10 +212,10 @@ module.exports = function(RAW_GENOME_DATA) {
             var m = Math.floor((a+b)/2);
             var mbins = countBins(m);
             if (mbins <= binsPerGenome) {
-              a = m;
+              a = (a === m) ? b : m;
             }
             else if (mbins > binsPerGenome) {
-              b = m;
+              b = (b === m) ? a : m;
             }
           }
           binSize = a;
