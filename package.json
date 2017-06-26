@@ -1,6 +1,6 @@
 {
   "name": "gramene-bins-client",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "description": "Provide API for working with gene distribution bins provided by data.gramene.org/genes",
   "main": "index.js",
   "scripts": {
