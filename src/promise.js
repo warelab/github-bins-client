@@ -15,7 +15,7 @@ module.exports = {
         var deferred, params;
         deferred = Q.defer();
         params = {rows: -1, type: "genome"};
-        client['Data access'].maps(params, function(response) {
+        client['Data access'].maps(params).then(function(response) {
           response.client = client;
           deferred.resolve(response);
         });
