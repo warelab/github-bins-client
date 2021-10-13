@@ -417,7 +417,7 @@ describe('Bins', function () {
     // given
 
     // when
-    var sum = _.sum(genomes, 'num_genes');
+    var sum = _.sumBy(genomes, 'num_genes');
 
     // then
     expect(sum).toEqual(1568831); // this is the number of genes that are db_type:"core" (i.e. not "otherfeatures")

@@ -6,7 +6,7 @@ var setResultsCount = 0;
 
 function Genomes(rawData, binName, bins, getBinSizeForGenome) {
   this._genomesArray = createGenomeObjects(rawData);
-  this._genomesLUT = _.indexBy(this._genomesArray, 'taxon_id');
+  this._genomesLUT = _.keyBy(this._genomesArray, 'taxon_id');
 
   this.binName = binName;
   this._bins = bins;
@@ -156,7 +156,7 @@ function createGenomeObjects(rawData) {
 
 function Genome(params) {
   this._regionsArray = refactorMapRegions(params.regions);
-  this._regionsLUT = _.indexBy(this._regionsArray, 'name');
+  this._regionsLUT = _.keyBy(this._regionsArray, 'name');
   this.taxon_id = params.taxon_id;
   this.assembledGenomeSize = params.assembledGenomeSize;
   this.system_name = params.system_name;
